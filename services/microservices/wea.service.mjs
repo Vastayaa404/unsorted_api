@@ -3,16 +3,17 @@ import axios from 'axios';
 import cote from 'cote';
 import 'dotenv/config';
 import redis from '../../db_redis/models/index.mjs';
+import ApiError from './middleware.errors.mjs';
 
 // Module =======================================================================================================================================================================================================================>
 const ws = new cote.Responder({ name: 'weather-service', namespace: 'weather' });
 
 ws.on('getWeather', async (req, cb) => {
   try {
-    if (!req.params.body || !req.params.body.city) return cb({ code: 400, data: 'Invalid JSON data' })//throw new Error('Invalid JSON data');
+    if (!req.params.body || !req.params.body.city) throw new ApiError(400, "Invalid JSON data");
     const cacheKey = `weather:${req.params.body.city}`;
     const cachedData = await redis.get(cacheKey);
-    if (cachedData) return cb({ state: 304, data: JSON.parse(cachedData) });
+    if (cachedData) return cb({ code: 304, data: JSON.parse(cachedData) });
 
     const { data } = await axios.get(`https://api.openweathermap.org/data/2.5/weather?q=${req.params.body.city}&appid=${process.env.WEA_API_KEY}`);
     const filteredData = {
@@ -23,6 +24,6 @@ ws.on('getWeather', async (req, cb) => {
     };
 
     await redis.set(cacheKey, JSON.stringify(filteredData), 'EX', 1800);
-    cb({ state: 200, data: filteredData });
+    cb({ code: 200, data: filteredData });
   } catch (e) { cb({ code: e.status, data: e.message }) };//catch (e) { cb({ error: { code: e.response?.status || 504, data: e.message/*"Service Unavailable"*/ } }) };
 });

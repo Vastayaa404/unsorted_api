@@ -12,6 +12,6 @@ su.on('signUp', async (req, cb) => {
   try {
     await User.create({ userId: uuidv4(), username: req.params.body.username, email: req.params.body.email, password: bcrypt.hashSync(req.params.body.password, 8) }).then(u => u.setRoles([1]));
     
-    cb({ message: "An Email sent to your account please verify." });
-  } catch (e) { cb({ error: e.message }) };
+    cb({ code: 201, data: "An Email sent to your account please verify" });
+  } catch (e) { cb({ code: e.status, data: e.message }) };
 });

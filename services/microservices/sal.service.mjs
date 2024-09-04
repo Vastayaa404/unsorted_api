@@ -1,6 +1,7 @@
 // Import all dependencies ======================================================================================================================================================================================================>
 import cote from 'cote';
 import nodemailer from 'nodemailer';
+import ApiError from './middleware.errors.mjs';
 
 // Module =======================================================================================================================================================================================================================>
 const sal = new cote.Responder({ name: 'send-activate-link-service', namespace: 'send-activate-link' });
@@ -9,10 +10,9 @@ const cmt = new cote.Requester({ name: 'create-mail-token-service', namespace: '
 sal.on('sendActivateLink', async (req, cb) => {
   try {
     const date = new Date();
-    const user = { "username": req.params.body.username, "created": date.toString() };
+    const user = { username: req.params.body.username, created: date.toString() };
     console.log(`user: ${JSON.stringify(user)}`)
-    const r = await new Promise(resolve => cmt.send({ type: 'createMailToken', params: { user } }, resolve)); if (r.error) throw new Error(r.error);
-    //const mailToken = authJwt.createMailToken(data);
+    const r = await new Promise(resolve => cmt.send({ type: 'createMailToken', params: { user } }, resolve)); if (r.code > 399) throw new ApiError(r.code, r.data);
     console.log(`r: ${JSON.stringify(r)}`)
 
     const transporter = nodemailer.createTransport({
@@ -34,8 +34,7 @@ sal.on('sendActivateLink', async (req, cb) => {
     // });
 
     console.log("email sent successfully");
-    
-    //throw new Error('Controlled error');
+
     cb('next');
-  } catch (e) { cb({ error: e.message }) };
+  } catch (e) { cb({ code: e.status, data: e.message }) };
 });
