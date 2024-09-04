@@ -1,7 +1,7 @@
 // Import all dependencies ======================================================================================================================================================================================================>
 import cote from 'cote';
 import nodemailer from 'nodemailer';
-import ApiError from './middleware.errors.mjs';
+import ApiError from './api.error.mjs';
 
 // Module =======================================================================================================================================================================================================================>
 const sal = new cote.Responder({ name: 'send-activate-link-service', namespace: 'send-activate-link' });

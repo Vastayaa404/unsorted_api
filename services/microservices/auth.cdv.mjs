@@ -2,7 +2,7 @@
 import cote from 'cote';
 import db from '../../db_auth/models/index.mjs';
 const User = db.user;
-import ApiError from './middleware.errors.mjs';
+import ApiError from './api.error.mjs';
 
 // Module =======================================================================================================================================================================================================================>
 const cdv = new cote.Responder({ name: 'check-data-is-valid-service', namespace: 'check-data-is-valid' });

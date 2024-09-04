@@ -2,7 +2,7 @@
 import cote from 'cote';
 import db from '../../db_auth/models/index.mjs';
 const Token = db.token;
-import ApiError from './middleware.errors.mjs';
+import ApiError from './api.error.mjs';
 
 // Module =======================================================================================================================================================================================================================>
 const rt = new cote.Responder({ name: 'refresh-tokens-service', namespace: 'refresh-tokens' });

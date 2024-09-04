@@ -2,7 +2,7 @@
 import cote from 'cote';
 import jwt from 'jsonwebtoken';
 import 'dotenv/config';
-import ApiError from './middleware.errors.mjs';
+import ApiError from './api.error.mjs';
 
 // Module =======================================================================================================================================================================================================================>
 const cmt = new cote.Responder({ name: 'create-mail-token-service', namespace: 'create-mail-token' });

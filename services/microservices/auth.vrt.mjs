@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 import db from '../../db_auth/models/index.mjs';
 const Token = db.token;
 const User = db.user;
-import ApiError from './middleware.errors.mjs';
+import ApiError from './api.error.mjs';
 
 // Module =======================================================================================================================================================================================================================>
 const vrt = new cote.Responder({ name: 'verify-refresh-token-service', namespace: 'verify-refresh-token' });

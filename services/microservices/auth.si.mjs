@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 import db from '../../db_auth/models/index.mjs';
 const Token = db.token;
 const User = db.user;
-import ApiError from './middleware.errors.mjs';
+import ApiError from './api.error.mjs';
 
 // Module =======================================================================================================================================================================================================================>
 const si = new cote.Responder({ name: 'signin-service', namespace: 'signin' });

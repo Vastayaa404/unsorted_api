@@ -3,7 +3,7 @@ import axios from 'axios';
 import cote from 'cote';
 import 'dotenv/config';
 import redis from '../../db_redis/models/index.mjs';
-import ApiError from './middleware.errors.mjs';
+import ApiError from './api.error.mjs';
 
 // Module =======================================================================================================================================================================================================================>
 const ws = new cote.Responder({ name: 'weather-service', namespace: 'weather' });
