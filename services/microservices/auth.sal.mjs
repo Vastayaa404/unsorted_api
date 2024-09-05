@@ -11,9 +11,7 @@ sal.on('sendActivateLink', async (req, cb) => {
   try {
     const date = new Date();
     const user = { username: req.params.body.username, created: date.toString() };
-    console.log(`user: ${JSON.stringify(user)}`)
     const r = await new Promise(resolve => cmt.send({ type: 'createMailToken', params: { user } }, resolve)); if (r.code > 399) throw new ApiError(r.code, r.data);
-    console.log(`r: ${JSON.stringify(r)}`)
 
     const transporter = nodemailer.createTransport({
       host: process.env.MAIL_HOST,
@@ -24,16 +22,13 @@ sal.on('sendActivateLink', async (req, cb) => {
         pass: process.env.MAIL_PASSWORD
       },
     });
-    
 
     // await transporter.sendMail({
     //   from: process.env.MAIL_DOMAIN,
     //   to: req.body.email,
     //   subject: "Verify Email",
-    //   text: `Click on the link below to veriy your account: http://localhost:5000/api/auth/activate/${mailToken}`,
+    //   text: `Click on the link below to veriy your account: https://activate.vs.ru/${mailToken}`,
     // });
-
-    console.log("email sent successfully");
 
     cb('next');
   } catch (e) { cb({ code: e.status, data: e.message }) };
