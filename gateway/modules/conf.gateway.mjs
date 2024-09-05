@@ -14,4 +14,9 @@ const testHeadersConfig = (req, res, next) => {
   next();
 };
 
-export { authHeadersConfig, projectHeadersConfig, testHeadersConfig };
+const secHeadersConfig = (req, res, next) => {
+  res.header("X-Powered-By", "Dora Security Service");
+  next();
+};
+
+export { authHeadersConfig, projectHeadersConfig, testHeadersConfig, secHeadersConfig };
