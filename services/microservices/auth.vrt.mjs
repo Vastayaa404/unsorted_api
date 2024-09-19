@@ -15,7 +15,7 @@ vrt.on('verifyRefreshToken', async (req, cb) => {
     if (!token) throw new ApiError(401, "Token not found");
 
     jwt.verify(token, process.env.JWT_REFRESH_KEY, { issuer: 'Dora authorization service' }, (e)=> { if (e) throw new ApiError(403, e.message) });
-    if (!await Token.findOne({ where: { token } })) { throw new ApiError(401, "Token invalid or issued by an unauthorized issuer") };
+    if (!await Token.findOne({ where: { token } })) throw new ApiError(401, "Token invalid or issued by an unauthorized issuer");
 
     cb('next');
   } catch (e) { cb({ code: e.status, data: e.message }) };

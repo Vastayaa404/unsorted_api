@@ -10,7 +10,8 @@ const cmt = new cote.Responder({ name: 'create-mail-token-service', namespace: '
 cmt.on('createMailToken', async (req, cb) => {
   try {
     const { created, username } = req.params.user;
-    if (!created || !username || typeof created !== 'string' || typeof username !== 'string') { throw new ApiError(400, "Invalid user data in CMT") };
+    if (!created || !username || typeof created !== 'string' || typeof username !== 'string') throw new ApiError(400, "CMT invalid user data");
+    if (!process.env.JWT_MAIL_KEY) throw new ApiError(501, "CMT an error occurred while receiving the secret keys");
 
     const mailToken = jwt.sign({ created, username }, process.env.JWT_MAIL_KEY, {
       algorithm: 'HS256',

@@ -17,7 +17,7 @@ si.on('signIn', async (req, cb) => {
     if (!username || !password) throw new ApiError(400, "DTO not found");
 
     const user = await User.findOne({ where: { username } });
-    if (!user || !(await bcrypt.compare(password, user.password))) { throw new ApiError(400, "Invalid Username or Password") };
+    if (!user || !(await bcrypt.compare(password, user.password))) throw new ApiError(400, "Invalid Username or Password");
     if (user.isBanned === "true") throw new ApiError(403, "Your account has been deactivated.");
 
     const r = await new Promise(resolve => ct.send({ type: 'createToken', params: { user } }, resolve)); if (r.code > 399) throw new ApiError(r.code, r.data);

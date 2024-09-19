@@ -10,7 +10,7 @@ import { corsConfig, headersConfig } from './conf.core.mjs';
 if (cluster.isPrimary) {
   const numCPUs = cpus().length;
   for (let i = 0; i < 4/*numCPUs*/; i++) cluster.fork();
-  console.log(`${(totalmem() / (1024 * 1024 * 1024)).toFixed(2)} GB RAM detected\n${(freemem() / (1024 * 1024 * 1024)).toFixed(2)} GB RAM available`); // RAM on device / available RAM
+  console.log(`${(totalmem() / (1024 * 1024 * 1024)).toFixed(2)} GB RAM detected\n${(freemem() / (1024 * 1024 * 1024)).toFixed(2)} GB RAM available`);
   cluster.on('exit', (worker) => console.log(`cluster ${worker.process.pid} died`));
 } else {
   const fastify = Fastify();
@@ -18,6 +18,6 @@ if (cluster.isPrimary) {
   .register(proxy, { upstream: 'http://localhost:5020', prefix: '/auth' }) // To auth gateway
   .register(proxy, { upstream: 'http://localhost:5040', prefix: '/dev' }) // To dev (test) gateway
   .register(proxy, { upstream: 'http://localhost:5060', prefix: '/services' }) // To project gateway
-  .register(proxy, { upstream: 'http://localhost:5070', prefix: '/sec' }) // To security gateway
+  .register(proxy, { upstream: 'http://localhost:5070', prefix: '/security' }) // To security gateway
   .listen({ port: 5000 }, (err, address) => { if (err) throw err; console.log(`Core Started`) });
 };
