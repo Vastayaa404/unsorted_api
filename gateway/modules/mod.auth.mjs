@@ -2,7 +2,7 @@
 import Fastify from 'fastify';
 import cookie from '@fastify/cookie';
 import cote from 'cote';
-import { authHeadersConfig } from './conf.gateway.mjs';
+import { headersConfig } from './conf.gateway.mjs';
 
 // Module =======================================================================================================================================================================================================================>
 const cdv = new cote.Requester({ name: 'check-data-is-valid-service', namespace: 'check-data-is-valid', timeout: 10000 }); // cdv.service
@@ -15,7 +15,7 @@ const dynamicHook = (rq, type, prm) => async (req, res) => { const r = await new
 
 
 const fastify = Fastify();
-fastify.addHook('onRequest', authHeadersConfig)
+fastify.addHook('onRequest', headersConfig)
 .register(cookie, { secret: "my-secret", hook: 'onRequest', parseOptions: {} })
 .register((instance, opts, next) => { instance.post('/signin', dynamicHook(si, 'signIn', 'body')); next() }) // rq - cote requester, type - cote service name, prm - cote content
 .register((instance, opts, next) => { instance.addHook('preHandler', dynamicHook(cdv, 'checkDataIsValid', 'body')); instance.addHook('preHandler', dynamicHook(sal, 'sendActivateLink', 'body')); instance.post('/signup', dynamicHook(su, 'signUp', 'body')); next() })

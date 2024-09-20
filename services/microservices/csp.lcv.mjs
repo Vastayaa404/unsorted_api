@@ -8,7 +8,7 @@ const lcv = new cote.Responder({ name: 'log-csp-violation-service', namespace: '
 lcv.on('logCSPViolation', async (req, cb) => {
   try {
     if (!req.params || !req.params.body) throw new ApiError(400, "No report detected");
-    
+
     const violationReport = req.body;
     const userAgent = req.headers['user-agent'];
     const ipAddress = req.ip;

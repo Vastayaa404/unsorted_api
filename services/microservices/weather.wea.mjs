@@ -22,8 +22,8 @@ ws.on('getWeather', async (req, cb) => {
       temp: Math.round(data.main.temp - 273.15),
       weather: data.weather[0].main,
     };
-
     await redis.set(cacheKey, JSON.stringify(filteredData), 'EX', 1800);
+    
     cb({ code: 200, data: filteredData });
   } catch (e) { cb({ code: e.response?.status || 504, data: e.message }) };
 });

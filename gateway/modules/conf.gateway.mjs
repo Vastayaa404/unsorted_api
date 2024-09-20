@@ -1,22 +1,6 @@
-// Module =======================================================================================================================================================================================================================>
-const authHeadersConfig = (req, res, next) => {
-  res.header("X-Powered-By", "Dora Authorization Service"); 
+const headersConfig = (req, res, next) => {
+  if (req.headers['x-dora-request-id']) { res.header("X-Dora-Request-Id", req.headers['x-dora-request-id']) }
   next();
 };
 
-const projectHeadersConfig = (req, res, next) => {
-  res.header("X-Powered-By", "Dora Lite Service");
-  next();
-};
-
-const testHeadersConfig = (req, res, next) => {
-  res.header("X-Powered-By", "Dora Dev Service");
-  next();
-};
-
-const secHeadersConfig = (req, res, next) => {
-  res.header("X-Powered-By", "Dora Security Service");
-  next();
-};
-
-export { authHeadersConfig, projectHeadersConfig, testHeadersConfig, secHeadersConfig };
+export { headersConfig };
