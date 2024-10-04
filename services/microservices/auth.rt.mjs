@@ -4,7 +4,7 @@ import db from '../../db_auth/models/index.mjs';
 const Token = db.token;
 import ApiError from './api.error.mjs';
 
-// Module =======================================================================================================================================================================================================================>
+// Module ============================================================ ===========================================================================================================================================================>
 const rt = new cote.Responder({ name: 'refresh-tokens-service', namespace: 'refresh-tokens' });
 const ct = new cote.Requester({ name: 'create-token-service', namespace: 'create-token', timeout: 10000 }); // ct.service
 

@@ -13,7 +13,6 @@ const su = new cote.Requester({ name: 'signup-service', namespace: 'signup', tim
 const vrt = new cote.Requester({ name: 'verify-refresh-token-service', namespace: 'verify-refresh-token', timeout: 10000 }); // vrt.service
 const dynamicHook = (rq, type, prm) => async (req, res) => { const r = await new Promise(resolve => rq.send({ type, params: { [prm]: req[prm] } }, resolve)); if (r.code > 399) return res.code(200).send(r); r.data?.refreshToken && (res.cookie("rt", r.data.refreshToken, { maxAge: 86400000, httpOnly: true, secure: true }), delete r.data.refreshToken); return r };
 
-
 const fastify = Fastify();
 fastify.addHook('onRequest', headersConfig)
 .register(cookie, { secret: "my-secret", hook: 'onRequest', parseOptions: {} })

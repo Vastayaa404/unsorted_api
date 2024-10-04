@@ -19,5 +19,6 @@ if (cluster.isPrimary) {
   .register(proxy, { upstream: 'http://localhost:5040', prefix: '/dev' }) // To dev (test) gateway
   .register(proxy, { upstream: 'http://localhost:5060', prefix: '/services' }) // To project gateway
   .register(proxy, { upstream: 'http://localhost:5070', prefix: '/security' }) // To security gateway
+  .register(proxy, { upstream: 'http://localhost:5080', prefix: '/dynamic' }) // To dynamic gateway | will be all routes
   .listen({ port: 5000 }, (err, address) => { if (err) throw err; console.log(`Core Started`) });
 };
