@@ -8,8 +8,12 @@ const redis = new Redis({
   // password: 'your_password', // если у вас есть пароль
 });
 
-redis.keys('*', (err, keys) => {
-  console.log(keys); // список всех ключей
-});
+// redis.keys('*', (err, keys) => console.log(keys));
+
+redis.on('connect', () => console.log('Redis client connected'));
+redis.on('ready', () => console.log('Redis client is ready to use'));
+redis.on('end', () => console.log('Redis connection closed'));
+redis.on('error', (err) => console.error('Redis error:', err));
+redis.on('reconnecting', () => console.log('Reconnecting to Redis...'));
 
 export default redis;

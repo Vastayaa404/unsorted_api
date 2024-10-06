@@ -28,104 +28,109 @@ const createCoteRequester = (name, namespace) => {
 
 
 const dynamicHook = (rq, type, prm) => async (req, res) => { const r = await new Promise(resolve => rq.send({ type, params: { [prm]: req[prm] } }, resolve)); if (r.code > 399) return res.code(200).send(r); r.data?.refreshToken && (res.cookie("rt", r.data.refreshToken, { maxAge: 86400000, httpOnly: true, secure: true }), delete r.data.refreshToken); return r };
-const testHook = () => async (req, res) => { res.send('hi from dyn') };
 
 const requesters = {}; // Хранилище всех Cote-сервисов
 const routeRegistry = {}; // Локальное хранилище зарегистрированных маршрутов
 
 const fastify = Fastify();
 
-loadInitialData(); // load route registry in redis
-
-const loadRoutes = async () => {
-  const routes = await redis.hgetall('routes');
-  const loadedRoutes = [];
-
-  for (const [route, configStr] of Object.entries(routes)) {
-    const config = JSON.parse(configStr);
-    const { method, middlewares, service, serviceMethod, params } = config;
-
-    console.log(`Loading route: ${method.toUpperCase()} ${route}`);
-
-    // Создаем Cote Requester для текущего сервиса, если его еще нет
-    createCoteRequester(service, service);
-
-    // Асинхронно загружаем все миддлвэры и создаем цепочку preHandler'ов
-    const hooks = await Promise.all(
-      (middlewares || []).map(async (middleware) => {
-        // Получаем имя сервиса для каждого миддлвэра
-        const serviceName = await redis.hget('middlewares', middleware);
-        createCoteRequester(serviceName, serviceName); // Создаем Cote Requester для middleware
-        return dynamicHook(services[serviceName], middleware, params);
-      })
-    );
-
-    // Динамически регистрируем маршрут в Fastify
-    fastify.register((instance, opts, next) => {
-      // Если есть миддлвэры, добавляем их перед обработчиком
-      hooks.forEach((hook) => instance.addHook('preHandler', hook));
-      // Регистрируем конечный обработчик
-      instance[method.toLowerCase()](route, dynamicHook(services[service], serviceMethod, params));
-      next();
-    });
-
-    // Добавляем информацию о загруженном маршруте для логов
-    loadedRoutes.push({ route, method, service, serviceMethod, middlewares });
-  }
-
-  console.log(`Total routes loaded: ${loadedRoutes.length}`);
-  // console.log(loadedRoutes);
-  return loadedRoutes;
-};
-
+// Функция для загрузки маршрутов из Redis
 // const loadRoutes = async () => {
-//   const routes = await redis.hgetall('routes');
-//   const loadedRoutes = [];
+//   try {
+//     const routes = await redis.hgetall('routes');
+//     const loadedRoutes = [];
 
-//   for (const [route, configStr] of Object.entries(routes)) {
-//     const config = JSON.parse(configStr);
-//     const { method, middlewares, service, serviceMethod, params } = config;
+//     for (const [route, configStr] of Object.entries(routes)) {
+//       const config = JSON.parse(configStr);
+//       const { method, middlewares, service, serviceMethod, params } = config;
 
-//     console.log(`Loading route: ${method.toUpperCase()} ${route}`);
+//       console.log(`Loading route: ${method.toUpperCase()} ${route}`);
 
-//     // Асинхронно загружаем все миддлвэры
-//     const hooks = await Promise.all((middlewares || []).map(async (middleware) => {
-//       // Получаем имя сервиса для каждого миддлвэра
-//       const serviceName = await redis.hget('middlewares', middleware);
-//       return dynamicHook(service[serviceName], middleware, params);
-//     }));
+//       // Создаем Cote Requester для текущего сервиса, если его еще нет
+//       createCoteRequester(service, service);
 
-//     // Динамически регистрируем маршрут в Fastify
-//     fastify.register((instance, opts, next) => {
-//       // Если есть миддлвэры, добавляем их перед обработчиком
-//       hooks.forEach((hook) => instance.addHook('preHandler', hook));
-//       // Регистрируем конечный обработчик
-//       instance[method.toLowerCase()](route, dynamicHook(service[service], serviceMethod, params));
-//       next();
-//     });
+//       // Асинхронно загружаем все миддлвэры и создаем цепочку preHandler'ов
+//       const hooks = await Promise.all(
+//         (middlewares || []).map(async (middleware) => {
+//           // Получаем имя сервиса для каждого миддлвэра
+//           const serviceName = await redis.hget('middlewares', middleware);
+//           createCoteRequester(serviceName, serviceName); // Создаем Cote Requester для middleware
+//           return dynamicHook(services[serviceName], middleware, params);
+//         })
+//       );
 
-//     // Добавляем информацию о загруженном маршруте для логов
-//     loadedRoutes.push({ route, method, service, serviceMethod, middlewares });
-//   }
+//       // Динамически регистрируем маршрут в Fastify
+//       fastify.route({
+//         method: method.toUpperCase(),
+//         url: route,
+//         preHandler: hooks,
+//         handler: dynamicHook(services[service], serviceMethod, params),
+//       });
 
-//   console.log(`Total routes loaded: ${loadedRoutes.length}`);
-//   console.log(loadedRoutes);
-//   return loadedRoutes;
+//       // Добавляем информацию о загруженном маршруте для логов
+//       loadedRoutes.push({ route, method, service, serviceMethod, middlewares });
+//     }
+
+//     console.log(`Total routes loaded: ${loadedRoutes.length}`);
+//     return loadedRoutes;
+
+//   } catch (e) {console.log(e)}
 // };
 
-(async () => {
+const loadRoutes = async () => {
   try {
-    const routes = await loadRoutes();
-    console.log(`Routes successfully loaded: `, routes);
+    const routes = await redis.hgetall('routes');
+    const loadedRoutes = [];
+
+    for (const [route, configStr] of Object.entries(routes)) {
+      const config = JSON.parse(configStr);
+      const { method, middlewares, service, serviceMethod, params } = config;
+
+      console.log(`Loading route: ${method/*.toUpperCase()*/} ${route}`);
+
+      // Асинхронно загружаем все миддлвэры
+      const hooks = await Promise.all((middlewares || []).map(async (middleware) => {
+        // Получаем имя сервиса для каждого миддлвэра
+        const serviceName = await redis.hget('middlewares', middleware);
+        console.log(serviceName)
+        return dynamicHook(service[serviceName], middleware, params);
+      }));
+
+      console.log(JSON.stringify(hooks))
+
+      // Динамически регистрируем маршрут в Fastify
+      fastify.register((instance, opts, next) => {
+        // Если есть миддлвэры, добавляем их перед обработчиком
+        hooks.forEach((hook) => instance.addHook('preHandler', hook));
+        // Регистрируем конечный обработчик
+        instance[method.toLowerCase()](route, dynamicHook(service[service], serviceMethod, params));
+        next();
+      });
+
+      // Добавляем информацию о загруженном маршруте для логов
+      loadedRoutes.push({ route, method, service, serviceMethod, params, middlewares });
+      console.log(loadedRoutes)
+    }
+
+    console.log(`Total routes loaded: ${loadedRoutes.length}`);
+    return loadedRoutes;
+  } catch (e) { console.log(e) }
+};
+
+const startServer = async () => {
+  try {
+    await loadInitialData();
+    await loadRoutes(); // Загружаем маршруты перед запуском сервера
+    await fastify.listen({ port: 5080 }); // Запускаем сервер только после загрузки маршрутов
+    console.log('Auth Gateway Started on port 5080');
   } catch (error) {
     console.error(`Failed to load routes: ${error.message}`);
+    process.exit(1); // Завершаем процесс в случае ошибки загрузки
   }
-})();
+};
 
-fastify.ready(() => console.log(fastify.printRoutes()));
-fastify.listen({ port: 5080 }, (err, address) => { if (err) throw err; console.log('Dynamic Gateway Started') });
-
-
+// Запуск сервера
+startServer();
 
 
 

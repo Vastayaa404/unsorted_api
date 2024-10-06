@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 // Module =======================================================================================================================================================================================================================>
 const corsConfig = {
-  origin: ['http://localhost:5174', 'http://localhost:3000', 'https://weather-now.ru', 'https://www.weather-now.ru'],
+  origin: ['http://localhost:5173', 'http://localhost:3000', 'https://weather-now.ru', 'https://www.weather-now.ru'],
   methods: ['GET', 'POST', 'OPTIONS'],
   credentials: true
 };
