@@ -1,150 +1,73 @@
 // Import all dependencies ======================================================================================================================================================================================================>
-import Fastify from 'fastify';
+  import Fastify from 'fastify';
 import cookie from '@fastify/cookie';
 import cote from 'cote';
+import redis from '../../db_redis/models/index.mjs';
 import { headersConfig } from './conf.gateway.mjs';
 import { loadInitialData } from './conf.test.gateway.registry.mjs';
 
-import redis from '../../db_redis/models/index.mjs'; // Не факт, что будут подгружаться так, но хрен с ним
-
 // Module =======================================================================================================================================================================================================================>
-// const cdv = new cote.Requester({ name: 'check-data-is-valid-service', namespace: 'check-data-is-valid', timeout: 10000 }); // cdv.service
-// const rt = new cote.Requester({ name: 'refresh-tokens-service', namespace: 'refresh-tokens', timeout: 10000 }); // rt.service
-// const sal = new cote.Requester({ name: 'send-activate-link-service', namespace: 'send-activate-link', timeout: 10000 }); // sal.service (sendactivatelink)
-// const si = new cote.Requester({ name: 'signin-service', namespace: 'signin', timeout: 10000 }); // si.service (signin)
-// const su = new cote.Requester({ name: 'signup-service', namespace: 'signup', timeout: 10000 }); // su.service (signup)
-// const vrt = new cote.Requester({ name: 'verify-refresh-token-service', namespace: 'verify-refresh-token', timeout: 10000 }); // vrt.service
+const dynamicHook = (rq, type, prm) => async (req, res) => { const r = await new Promise(resolve => rq.send({ type, params: { [prm]: req[prm] } }, resolve)); r.data?.refreshToken && (res.cookie("rt", r.data.refreshToken, { maxAge: 86400000, httpOnly: true, secure: true }), delete r.data.refreshToken); return r };
+const coteRequesters = {};
+const routeCache = {}; // Локальный кэш маршрутов
 
-// Словарь для хранения сервисов cote
-const services = {};
+await loadInitialData();
 
-// Функция для создания и регистрации cote.Requester'ов динамически
-const createCoteRequester = (name, namespace) => {
-  if (!services[namespace]) {
-    services[namespace] = new cote.Requester({ name, namespace, timeout: 10000 });
+const getCoteRequester = ({ coteName, coteNamespace, coteAttr }) => { try { if (!coteRequesters[coteAttr]) { coteRequesters[coteAttr] = new cote.Requester({ name: coteName, namespace: coteNamespace, timeout: 10000 }) }; return coteRequesters[coteAttr] } catch (e) { console.log(e) } };
+
+const runMiddlewares = async (middlewares, req, res) => {
+  try {
+    for (const middlewareName of middlewares) {
+      const middlewareConfigStr = await redis.hget('middlewares', middlewareName);
+      if (!middlewareConfigStr) { return res.status(500).send({ code: 500, data: `Middleware ${middlewareName} is not configured correctly.` }) };
+
+      const middlewareConfig = JSON.parse(middlewareConfigStr); // Вроде не нужно
+      const { coteName, coteNamespace, coteAttr, paramsKey, params } = middlewareConfig;
+      if (!coteName || !coteNamespace || !coteAttr) { return res.status(500).send({ code: 500, data: `Middleware ${middlewareName} is missing required fields.` }) };
+
+      const middlewareRequester = getCoteRequester({ coteName, coteNamespace, coteAttr });
+      const middlewareResponse = await dynamicHook(middlewareRequester, paramsKey, params)(req, res);
+      if (middlewareResponse !== "next") return middlewareResponse;
+    }
+    return null;
+  } catch (e) {
+    console.log(e);
+    return res.status(500).send({ code: 500, data: 'An error occurred while processing middlewares.' });
   }
-  return services[namespace];
 };
-
-
-const dynamicHook = (rq, type, prm) => async (req, res) => { const r = await new Promise(resolve => rq.send({ type, params: { [prm]: req[prm] } }, resolve)); if (r.code > 399) return res.code(200).send(r); r.data?.refreshToken && (res.cookie("rt", r.data.refreshToken, { maxAge: 86400000, httpOnly: true, secure: true }), delete r.data.refreshToken); return r };
-
-const requesters = {}; // Хранилище всех Cote-сервисов
-const routeRegistry = {}; // Локальное хранилище зарегистрированных маршрутов
 
 const fastify = Fastify();
+fastify.addHook('onRequest', headersConfig)
+.register(cookie, { secret: "my-secret", hook: 'onRequest', parseOptions: {} })
+.route({ // TODO: fix method GET/POST, the method is not being compared now
+  method: ['GET', 'POST'],
+  url: '/*',
+  handler: async (req, res) => {
+    const routeKey = req.raw.url;
+    let routeConfig = routeCache[routeKey];
+    if (!routeConfig) {
+      routeConfig = await redis.hget('routes', routeKey);
+      if (!routeConfig) return res.status(404).send({ code: 404, data: `Route is incorrect, or functionality is not supported` });
 
-// Функция для загрузки маршрутов из Redis
-// const loadRoutes = async () => {
-//   try {
-//     const routes = await redis.hgetall('routes');
-//     const loadedRoutes = [];
-
-//     for (const [route, configStr] of Object.entries(routes)) {
-//       const config = JSON.parse(configStr);
-//       const { method, middlewares, service, serviceMethod, params } = config;
-
-//       console.log(`Loading route: ${method.toUpperCase()} ${route}`);
-
-//       // Создаем Cote Requester для текущего сервиса, если его еще нет
-//       createCoteRequester(service, service);
-
-//       // Асинхронно загружаем все миддлвэры и создаем цепочку preHandler'ов
-//       const hooks = await Promise.all(
-//         (middlewares || []).map(async (middleware) => {
-//           // Получаем имя сервиса для каждого миддлвэра
-//           const serviceName = await redis.hget('middlewares', middleware);
-//           createCoteRequester(serviceName, serviceName); // Создаем Cote Requester для middleware
-//           return dynamicHook(services[serviceName], middleware, params);
-//         })
-//       );
-
-//       // Динамически регистрируем маршрут в Fastify
-//       fastify.route({
-//         method: method.toUpperCase(),
-//         url: route,
-//         preHandler: hooks,
-//         handler: dynamicHook(services[service], serviceMethod, params),
-//       });
-
-//       // Добавляем информацию о загруженном маршруте для логов
-//       loadedRoutes.push({ route, method, service, serviceMethod, middlewares });
-//     }
-
-//     console.log(`Total routes loaded: ${loadedRoutes.length}`);
-//     return loadedRoutes;
-
-//   } catch (e) {console.log(e)}
-// };
-
-const loadRoutes = async () => {
-  try {
-    const routes = await redis.hgetall('routes');
-    const loadedRoutes = [];
-
-    for (const [route, configStr] of Object.entries(routes)) {
-      const config = JSON.parse(configStr);
-      const { method, middlewares, service, serviceMethod, params } = config;
-
-      console.log(`Loading route: ${method/*.toUpperCase()*/} ${route}`);
-
-      // Асинхронно загружаем все миддлвэры
-      const hooks = await Promise.all((middlewares || []).map(async (middleware) => {
-        // Получаем имя сервиса для каждого миддлвэра
-        const serviceName = await redis.hget('middlewares', middleware);
-        console.log(serviceName)
-        return dynamicHook(service[serviceName], middleware, params);
-      }));
-
-      console.log(JSON.stringify(hooks))
-
-      // Динамически регистрируем маршрут в Fastify
-      fastify.register((instance, opts, next) => {
-        // Если есть миддлвэры, добавляем их перед обработчиком
-        hooks.forEach((hook) => instance.addHook('preHandler', hook));
-        // Регистрируем конечный обработчик
-        instance[method.toLowerCase()](route, dynamicHook(service[service], serviceMethod, params));
-        next();
-      });
-
-      // Добавляем информацию о загруженном маршруте для логов
-      loadedRoutes.push({ route, method, service, serviceMethod, params, middlewares });
-      console.log(loadedRoutes)
+      routeConfig = JSON.parse(routeConfig);
+      routeCache[routeKey] = routeConfig;
     }
 
-    console.log(`Total routes loaded: ${loadedRoutes.length}`);
-    return loadedRoutes;
-  } catch (e) { console.log(e) }
-};
+    const { method, middlewares, coteName, coteNamespace, coteAttr, paramsKey, params } = routeConfig;
+    const requester = getCoteRequester({ coteName, coteNamespace, coteAttr });
 
-const startServer = async () => {
-  try {
-    await loadInitialData();
-    await loadRoutes(); // Загружаем маршруты перед запуском сервера
-    await fastify.listen({ port: 5080 }); // Запускаем сервер только после загрузки маршрутов
-    console.log('Auth Gateway Started on port 5080');
-  } catch (error) {
-    console.error(`Failed to load routes: ${error.message}`);
-    process.exit(1); // Завершаем процесс в случае ошибки загрузки
-  }
-};
+    // Выполняем миддлвары перед основным запросом
+    if (middlewares && middlewares.length > 0) { const middlewareResponse = await runMiddlewares(middlewares, req, res); if (middlewareResponse) return middlewareResponse };
+    const response = await dynamicHook(requester, paramsKey, params)(req, res);
 
-// Запуск сервера
-startServer();
+    res.send(response);
+  },
+})
+.listen({ port: 5080 }, (err, address) => { if (err) throw err; console.log('Dynamic Gateway Started') });
 
+// Функция для сброса локального кэша при изменении маршрутов в Redis
+// const resetRouteCache = () => { console.log("Resetting route cache due to configuration changes..."); for (const key in routeCache) delete routeCache[key] };
 
-
-
-
-
-
-
-
-
-// fastify.addHook('onRequest', headersConfig)
-// .register(cookie, { secret: "my-secret", hook: 'onRequest', parseOptions: {} })
-// .register((instance, opts, next) => { instance.get('/hello', testHook()); next() }) // rq - cote requester, type - cote service name, prm - cote content
-// .register((instance, opts, next) => { instance.post('/signin', dynamicHook(si, 'signIn', 'body')); next() }) // rq - cote requester, type - cote service name, prm - cote content
-// .register((instance, opts, next) => { instance.addHook('preHandler', dynamicHook(cdv, 'checkDataIsValid', 'body')); instance.addHook('preHandler', dynamicHook(sal, 'sendActivateLink', 'body')); instance.post('/signup', dynamicHook(su, 'signUp', 'body')); next() })
-// .register((instance, opts, next) => { instance.addHook('preHandler', dynamicHook(vrt, 'verifyRefreshToken', 'cookies')); instance.get('/refresh', dynamicHook(rt, 'refreshTokens', 'cookies')); next() })
-// .listen({ port: 5080 }, (err, address) => { if (err) throw err; console.log('Dynamic Gateway Started') });
+// Подписка на изменения маршрутов в Redis TODO: два коннекта для режима подписчика/обновление таймером
+// redis.subscribe('route_changes', () => console.log("Subscribed to Redis route changes channel"));
+// redis.on('message', (channel, message) => { if (channel === 'route_changes') resetRouteCache() });

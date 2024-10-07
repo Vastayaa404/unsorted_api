@@ -7,7 +7,17 @@ import { headersConfig } from './conf.gateway.mjs';
 import { loadInitialData } from './conf.test.gateway.registry.mjs';
 
 // Module =======================================================================================================================================================================================================================>
-const dynamicHook = (rq, type, prm) => async (req, res) => { const r = await new Promise(resolve => rq.send({ type, params: { [prm]: req[prm] } }, resolve)); if (r.code > 399) return res.code(200).send(r); r.data?.refreshToken && (res.cookie("rt", r.data.refreshToken, { maxAge: 86400000, httpOnly: true, secure: true }), delete r.data.refreshToken); return r };
+// const dynamicHook = (rq, type, prm) => async (req, res) => { 
+//   console.log(`DynamicHook request, rq: rq, type: ${type}, prm: ${prm}`)
+//   const r = await new Promise(resolve => rq.send({ type, params: { [prm]: req[prm] } }, resolve)); 
+//   if (r.code > 399) { console.log(`Возвращаем r с ошибкой: ${JSON.stringify(r)}`); return res.code(200).send(r); } 
+//   r.data?.refreshToken && (res.cookie("rt", r.data.refreshToken, { maxAge: 86400000, httpOnly: true, secure: true }), delete r.data.refreshToken); console.log(`Возвращаем r без ошибки: ${JSON.stringify(r)}`); return r 
+// };
+const dynamicHook = (rq, type, prm) => async (req, res) => { 
+  console.log(`DynamicHook request, rq: rq, type: ${type}, prm: ${prm}`)
+  const r = await new Promise(resolve => rq.send({ type, params: { [prm]: req[prm] } }, resolve)); 
+  r.data?.refreshToken && (res.cookie("rt", r.data.refreshToken, { maxAge: 86400000, httpOnly: true, secure: true }), delete r.data.refreshToken); console.log(`Возвращаем r: ${JSON.stringify(r)}`); return r 
+};
 const coteRequesters = {};
 const routeCache = {}; // Локальный кэш маршрутов
 
@@ -22,34 +32,13 @@ const getCoteRequester = ({ coteName, coteNamespace, coteAttr }) => {
   } catch (e) { console.log(e) }
 };
 
-// const runMiddlewares = async (middlewares, req, res) => {
-//   try {
-//     console.log(middlewares)
-//     for (const middlewareName of middlewares) {
-//       const middlewareConfig = await redis.hget('middlewares', middlewareName);
-//       if (!middlewareConfig) { return res.status(500).send({ code: 500, data: `Middleware ${middlewareName} is not configured correctly.` }) };
-  
-//       // Получаем или создаем Cote Requester для миддлвара
-//       const middlewareRequester = getCoteRequester(middlewareConfig);
-  
-//       // Вызываем middleware через dynamicHook
-//       const middlewareResponse = await dynamicHook(middlewareRequester, middlewareConfig.coteNamespace, 'body')(req, res);
-  
-//       // Если middleware возвращает ответ — прерываем цепочку
-//       if (middlewareResponse) return middlewareResponse;
-//     }
-//     return null; // Все миддлвары успешно выполнились
-//   } catch (e) { console.log(e) }
-// };
-
 const runMiddlewares = async (middlewares, req, res) => {
   try {
-    // console.log(middlewares);
-
     for (const middlewareName of middlewares) {
       // Извлекаем конфигурацию миддлвара из Redis
       const middlewareConfigStr = await redis.hget('middlewares', middlewareName);
       if (!middlewareConfigStr) { return res.status(500).send({ code: 500, data: `Middleware ${middlewareName} is not configured correctly.` }) };
+      console.log(middlewareConfigStr)
 
       // Парсим конфигурацию и оставляем только нужные параметры
       const middlewareConfig = JSON.parse(middlewareConfigStr); // Вроде не нужно
@@ -59,7 +48,7 @@ const runMiddlewares = async (middlewares, req, res) => {
 
       if (!coteName || !coteNamespace || !coteAttr) { return res.status(500).send({ code: 500, data: `Middleware ${middlewareName} is missing required fields.` }) };
 
-      console.log(`this is middleware config: ${JSON.stringify(middlewareConfig)}`)
+      // console.log(`this is middleware config: ${JSON.stringify(middlewareConfig)}`)
 
       // Получаем или создаем Cote Requester для миддлвара
       const middlewareRequester = getCoteRequester({ coteName, coteNamespace, coteAttr });
@@ -67,8 +56,9 @@ const runMiddlewares = async (middlewares, req, res) => {
 
       // Если понадобится логика вызова миддлвара — раскомментируйте
       const middlewareResponse = await dynamicHook(middlewareRequester, paramsKey, params)(req, res);
-      console.log(`this is middleware response: ${middlewareResponse}`)
+      console.log(`this is middleware response: ${JSON.stringify(middlewareResponse)}`)
       if (middlewareResponse !== "next") return middlewareResponse;
+      // if (middlewareResponse !== "next") return res.send(middlewareResponse);
     }
 
     return null; // Все миддлвары успешно выполнились
@@ -100,7 +90,7 @@ fastify.addHook('onRequest', headersConfig)
     }
 
     const { method, middlewares, coteName, coteNamespace, coteAttr, paramsKey, params } = routeConfig;
-    console.log(routeConfig)
+    // console.log(routeConfig)
 
     // Динамически создаем или используем уже существующий Cote Requester
     const requester = getCoteRequester({ coteName, coteNamespace, coteAttr });
@@ -108,12 +98,14 @@ fastify.addHook('onRequest', headersConfig)
     // Выполняем миддлвары перед основным запросом
     if (middlewares && middlewares.length > 0) {
       const middlewareResponse = await runMiddlewares(middlewares, req, res);
-      if (middlewareResponse) return middlewareResponse;
+      console.log(`middlewareResponse is: ${JSON.stringify(middlewareResponse)}`)
+      if (middlewareResponse) { console.log('Миддлвар вывалился, отправляем ошибку'); return middlewareResponse;/*return res.send(middlewareResponse)*/ }//return middlewareResponse;
     }
 
     // Выполняем основной запрос после миддлваров
     // console.log(`requester is ${JSON.stringify(requester)}`)
     console.log(Object.keys(coteRequesters))
+    console.log('Да пиздец оно выполняется')
     const response = await dynamicHook(requester, paramsKey, params)(req, res);
 
     // Отправляем ответ
