@@ -20,5 +20,5 @@ rt.on('refreshTokens', async (req, cb) => {
     await Token.create({ userId, username, token: refreshToken });
 
     cb({ code: 200, data: { accessToken, refreshToken } });
-  } catch (e) { cb({ code: e.status, data: e.message }) };
+  } catch (e) { cb({ code: e?.status || 503, data: e.message }) };
 });

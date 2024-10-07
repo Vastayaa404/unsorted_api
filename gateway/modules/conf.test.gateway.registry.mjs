@@ -57,16 +57,22 @@ const initialMiddlewares = {
     coteName: "verify-refresh-token-service",
     coteNamespace: "verify-refresh-token",
     coteAttr: "vrt",
+    paramsKey: "verifyRefreshToken",
+    params: "cookies"
   },
   "check-data-is-valid": {
     coteName: "check-data-is-valid-service",
     coteNamespace: "check-data-is-valid",
     coteAttr: "cdv",
+    paramsKey: "checkDataIsValid",
+    params: "body"
   },
   "send-activate-link": {
     coteName: "send-activate-link-service",
     coteNamespace: "send-activate-link",
     coteAttr: "sal",
+    paramsKey: "sendActivateLink",
+    params: "body"
   },
 };
 
@@ -76,7 +82,7 @@ export async function loadInitialData() {
     // Загружаем маршруты
     for (const [route, config] of Object.entries(initialRoutes)) {
       await redis.hset('routes', route, JSON.stringify(config));
-      // console.log(`Route ${route} loaded with config: ${JSON.stringify(config)}`);
+      console.log(`Route ${route} loaded`/*`Route ${route} loaded with config: ${JSON.stringify(config)}`*/);
     }
 
     // Загружаем middleware-функции
@@ -88,6 +94,6 @@ export async function loadInitialData() {
     console.error("Error loading initial data into Redis:", err);
   } finally {
     // redis.quit(); // Закрытие соединения после загрузки данных
-    console.log('Redis routes added')
+    console.log('Redis routes configured')
   }
 }

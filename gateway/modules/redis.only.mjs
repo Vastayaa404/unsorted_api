@@ -2,10 +2,9 @@
 import Fastify from 'fastify';
 import cookie from '@fastify/cookie';
 import cote from 'cote';
+import redis from '../../db_redis/models/index.mjs'; // Не факт, что будут подгружаться так, но хрен с ним
 import { headersConfig } from './conf.gateway.mjs';
 import { loadInitialData } from './conf.test.gateway.registry.mjs';
-
-import redis from '../../db_redis/models/index.mjs'; // Не факт, что будут подгружаться так, но хрен с ним
 
 // Module =======================================================================================================================================================================================================================>
 const dynamicHook = (rq, type, prm) => async (req, res) => { const r = await new Promise(resolve => rq.send({ type, params: { [prm]: req[prm] } }, resolve)); if (r.code > 399) return res.code(200).send(r); r.data?.refreshToken && (res.cookie("rt", r.data.refreshToken, { maxAge: 86400000, httpOnly: true, secure: true }), delete r.data.refreshToken); return r };
@@ -45,31 +44,31 @@ const getCoteRequester = ({ coteName, coteNamespace, coteAttr }) => {
 
 const runMiddlewares = async (middlewares, req, res) => {
   try {
-    console.log(middlewares);
+    // console.log(middlewares);
 
     for (const middlewareName of middlewares) {
       // Извлекаем конфигурацию миддлвара из Redis
       const middlewareConfigStr = await redis.hget('middlewares', middlewareName);
-      if (!middlewareConfigStr) {
-        return res.status(500).send({ code: 500, data: `Middleware ${middlewareName} is not configured correctly.` });
-      }
+      if (!middlewareConfigStr) { return res.status(500).send({ code: 500, data: `Middleware ${middlewareName} is not configured correctly.` }) };
 
       // Парсим конфигурацию и оставляем только нужные параметры
-      const middlewareConfig = JSON.parse(middlewareConfigStr);
+      const middlewareConfig = JSON.parse(middlewareConfigStr); // Вроде не нужно
 
       // Извлекаем только нужные поля
-      const { coteName, coteNamespace, coteAttr } = middlewareConfig;
+      const { coteName, coteNamespace, coteAttr, paramsKey, params } = middlewareConfig;
 
-      if (!coteName || !coteNamespace || !coteAttr) {
-        return res.status(500).send({ code: 500, data: `Middleware ${middlewareName} is missing required fields.` });
-      }
+      if (!coteName || !coteNamespace || !coteAttr) { return res.status(500).send({ code: 500, data: `Middleware ${middlewareName} is missing required fields.` }) };
+
+      console.log(`this is middleware config: ${JSON.stringify(middlewareConfig)}`)
 
       // Получаем или создаем Cote Requester для миддлвара
       const middlewareRequester = getCoteRequester({ coteName, coteNamespace, coteAttr });
+      // console.log(middlewareRequester)
 
       // Если понадобится логика вызова миддлвара — раскомментируйте
-      const middlewareResponse = await dynamicHook(middlewareRequester, coteNamespace, 'body')(req, res);
-      if (middlewareResponse) return middlewareResponse;
+      const middlewareResponse = await dynamicHook(middlewareRequester, paramsKey, params)(req, res);
+      console.log(`this is middleware response: ${middlewareResponse}`)
+      if (middlewareResponse !== "next") return middlewareResponse;
     }
 
     return null; // Все миддлвары успешно выполнились
@@ -101,6 +100,7 @@ fastify.addHook('onRequest', headersConfig)
     }
 
     const { method, middlewares, coteName, coteNamespace, coteAttr, paramsKey, params } = routeConfig;
+    console.log(routeConfig)
 
     // Динамически создаем или используем уже существующий Cote Requester
     const requester = getCoteRequester({ coteName, coteNamespace, coteAttr });
@@ -108,11 +108,11 @@ fastify.addHook('onRequest', headersConfig)
     // Выполняем миддлвары перед основным запросом
     if (middlewares && middlewares.length > 0) {
       const middlewareResponse = await runMiddlewares(middlewares, req, res);
-      if (middlewareResponse) return; // Если миддлвар вернул ответ, прерываем цепочку
+      if (middlewareResponse) return middlewareResponse;
     }
 
     // Выполняем основной запрос после миддлваров
-    console.log(routeCache)
+    // console.log(`requester is ${JSON.stringify(requester)}`)
     console.log(Object.keys(coteRequesters))
     const response = await dynamicHook(requester, paramsKey, params)(req, res);
 

@@ -10,7 +10,7 @@ const ws = new cote.Responder({ name: 'weather-service', namespace: 'weather' })
 
 ws.on('getWeather', async (req, cb) => {
   try {
-    if (!req.params.body || !req.params.body.city) throw new ApiError(400, "Invalid JSON data");
+    if (!req.params.body || !req.params.body.city) throw new ApiError(422, "Invalid JSON data");
     const cacheKey = `weather:${req.params.body.city}`;
     const cachedData = await redis.get(cacheKey);
     if (cachedData) return cb({ code: 304, data: JSON.parse(cachedData) });
@@ -25,5 +25,5 @@ ws.on('getWeather', async (req, cb) => {
     await redis.set(cacheKey, JSON.stringify(filteredData), 'EX', 1800);
     
     cb({ code: 200, data: filteredData });
-  } catch (e) { cb({ code: e.response?.status || 504, data: e.message }) };
+  } catch (e) { cb({ code: e.response?.status || e?.status || 504, data: e.message }) };
 });

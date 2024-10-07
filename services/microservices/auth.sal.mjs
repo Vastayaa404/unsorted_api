@@ -32,5 +32,5 @@ sal.on('sendActivateLink', async (req, cb) => {
     });
 
     cb('next');
-  } catch (e) { cb({ code: e.status, data: e.message }) };
+  } catch (e) { cb({ code: e?.status || 503, data: e.message }) };
 });

@@ -14,7 +14,7 @@ si.on('signIn', async (req, cb) => {
   try {
     if (!req.params.body) throw new ApiError(400, "No Data Detected. Aborting")
     const { username, password } = req.params.body;
-    if (!username || !password) throw new ApiError(400, "DTO not found");
+    if (!username || !password) throw new ApiError(422, "DTO not found");
 
     const user = await User.findOne({ where: { username } });
     if (!user || !(await bcrypt.compare(password, user.password))) throw new ApiError(400, "Invalid Username or Password");
@@ -26,5 +26,5 @@ si.on('signIn', async (req, cb) => {
     await Token.create({ userId: user.id, username, token: refreshToken });
 
     cb({ code: 200, data: { username, accessToken, refreshToken } });
-  } catch (e) { cb({ code: e.status, data: e.message }) };
+  } catch (e) { cb({ code: e?.status || 503, data: e.message }) };
 });

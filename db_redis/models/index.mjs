@@ -5,7 +5,7 @@ import Redis from 'ioredis'; // Redis for weather service
 const redis = new Redis({
   host: '127.0.0.1',
   port: 6379,
-  // password: 'your_password', // если у вас есть пароль
+  // password: 'your_password',
 });
 
 // redis.keys('*', (err, keys) => console.log(keys));

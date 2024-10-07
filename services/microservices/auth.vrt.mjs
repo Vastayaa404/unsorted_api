@@ -19,5 +19,5 @@ vrt.on('verifyRefreshToken', async (req, cb) => {
     if (!await Token.findOne({ where: { token } })) throw new ApiError(401, "Token invalid or issued by an unauthorized issuer");
 
     cb('next');
-  } catch (e) { cb({ code: e.status, data: e.message }) };
+  } catch (e) { cb({ code: e?.status || 503, data: e.message }) };
 });
