@@ -9,7 +9,7 @@ import { corsConfig, headersConfig } from './conf.core.mjs';
 // Module =======================================================================================================================================================================================================================>
 if (cluster.isPrimary) {
   const numCPUs = cpus().length;
-  for (let i = 0; i < 4/*numCPUs*/; i++) cluster.fork();
+  for (let i = 0; i < numCPUs; i++) cluster.fork();
   console.log(`${(totalmem() / (1024 * 1024 * 1024)).toFixed(2)} GB RAM detected\n${(freemem() / (1024 * 1024 * 1024)).toFixed(2)} GB RAM available`);
   cluster.on('exit', (worker) => console.log(`cluster ${worker.process.pid} died`));
 } else {

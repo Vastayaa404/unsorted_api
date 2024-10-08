@@ -30,7 +30,7 @@ fastify.addHook('onRequest', headersConfig)
     }
 
     const { method, middlewares } = routeConfig;
-    if (!middlewares || middlewares.length === 0) return res.status(200).send({ code: 506, data: `No logic defined for ${routeKey}` }); // TODO: check status codes logic
+    if (!method || !middlewares || middlewares.length === 0) return res.status(200).send({ code: 506, data: `No logic defined for ${routeKey}` });
     const middlewareResponse = await processMiddlewares(middlewares, req, res);
     if (middlewareResponse) return res.send(middlewareResponse);
   },
