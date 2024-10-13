@@ -5,11 +5,14 @@ import db from '../../db_auth/models/index.mjs';
 const Token = db.token;
 const User = db.user;
 import ApiError from './api.error.mjs';
+import { handleError } from '../../deborah/panic.functions.mjs';
 
 // Module =======================================================================================================================================================================================================================>
 const si = new cote.Responder({ name: 'signin-service', namespace: 'signin' });
 const ct = new cote.Requester({ name: 'create-token-service', namespace: 'create-token', timeout: 10000 }); // ct.service
 
+process.on('unhandledRejection', (reason, promise) => handleError('Unhandled Rejection', reason));
+process.on('uncaughtException', (err) => handleError('Uncaught Exception', err));
 si.on('signIn', async (req, cb) => {
   try {
     if (!req.params.body) throw new ApiError(400, "No Data Detected. Aborting")

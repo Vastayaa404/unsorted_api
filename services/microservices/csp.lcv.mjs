@@ -1,10 +1,13 @@
 // Import all dependencies ======================================================================================================================================================================================================>
 import cote from 'cote';
 import ApiError from './api.error.mjs';
+import { handleError } from '../../deborah/panic.functions.mjs';
 
 // Module =======================================================================================================================================================================================================================>
 const lcv = new cote.Responder({ name: 'log-csp-violation-service', namespace: 'log-csp-violation' });
 
+process.on('unhandledRejection', (reason, promise) => handleError('Unhandled Rejection', reason));
+process.on('uncaughtException', (err) => handleError('Uncaught Exception', err));
 lcv.on('logCSPViolation', async (req, cb) => {
   try {
     if (!req.params || !req.params.body) throw new ApiError(422, "No report data");

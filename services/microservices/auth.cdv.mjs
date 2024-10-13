@@ -3,10 +3,13 @@ import cote from 'cote';
 import db from '../../db_auth/models/index.mjs';
 const User = db.user;
 import ApiError from './api.error.mjs';
+import { handleError } from '../../deborah/panic.functions.mjs';
 
 // Module =======================================================================================================================================================================================================================>
 const cdv = new cote.Responder({ name: 'check-data-is-valid-service', namespace: 'check-data-is-valid' });
 
+process.on('unhandledRejection', (reason, promise) => handleError('Unhandled Rejection', reason));
+process.on('uncaughtException', (err) => handleError('Uncaught Exception', err));
 cdv.on('checkDataIsValid', async (req, cb) => {
   try {
     if (!req.params || !req.params.body) throw new ApiError(400, "No Data Detected. Aborting");

@@ -3,12 +3,14 @@ import cote from 'cote';
 import jwt from 'jsonwebtoken';
 import db from '../../db_auth/models/index.mjs';
 const Token = db.token;
-const User = db.user;
 import ApiError from './api.error.mjs';
+import { handleError } from '../../deborah/panic.functions.mjs';
 
 // Module =======================================================================================================================================================================================================================>
 const vrt = new cote.Responder({ name: 'verify-refresh-token-service', namespace: 'verify-refresh-token' });
 
+process.on('unhandledRejection', (reason, promise) => handleError('Unhandled Rejection', reason));
+process.on('uncaughtException', (err) => handleError('Uncaught Exception', err));
 vrt.on('verifyRefreshToken', async (req, cb) => {
   try {
     const token = req.params.cookies?.rt;

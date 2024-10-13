@@ -4,10 +4,13 @@ import cote from 'cote';
 import 'dotenv/config';
 import redis from '../../db_redis/models/index.mjs';
 import ApiError from './api.error.mjs';
+import { handleError } from '../../deborah/panic.functions.mjs';
 
 // Module =======================================================================================================================================================================================================================>
 const ws = new cote.Responder({ name: 'weather-service', namespace: 'weather' });
 
+process.on('unhandledRejection', (reason, promise) => handleError('Unhandled Rejection', reason));
+process.on('uncaughtException', (err) => handleError('Uncaught Exception', err));
 ws.on('getWeather', async (req, cb) => {
   try {
     if (!req.params.body || !req.params.body.city) throw new ApiError(422, "Invalid JSON data");

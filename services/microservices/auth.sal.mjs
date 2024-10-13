@@ -3,11 +3,14 @@ import cote from 'cote';
 import 'dotenv/config';
 import nodemailer from 'nodemailer';
 import ApiError from './api.error.mjs';
+import { handleError } from '../../deborah/panic.functions.mjs';
 
 // Module =======================================================================================================================================================================================================================>
 const sal = new cote.Responder({ name: 'send-activate-link-service', namespace: 'send-activate-link' });
 const cmt = new cote.Requester({ name: 'create-mail-token-service', namespace: 'create-mail-token', timeout: 10000 }); // cmt.service
 
+process.on('unhandledRejection', (reason, promise) => handleError('Unhandled Rejection', reason));
+process.on('uncaughtException', (err) => handleError('Uncaught Exception', err));
 sal.on('sendActivateLink', async (req, cb) => {
   try {
     const date = new Date();

@@ -3,10 +3,13 @@ import cote from 'cote';
 import jwt from 'jsonwebtoken';
 import 'dotenv/config';
 import ApiError from './api.error.mjs';
+import { handleError } from '../../deborah/panic.functions.mjs';
 
 // Module =======================================================================================================================================================================================================================>
 const cmt = new cote.Responder({ name: 'create-mail-token-service', namespace: 'create-mail-token' });
 
+process.on('unhandledRejection', (reason, promise) => handleError('Unhandled Rejection', reason));
+process.on('uncaughtException', (err) => handleError('Uncaught Exception', err));
 cmt.on('createMailToken', async (req, cb) => {
   try {
     const { created, username } = req.params.user;
