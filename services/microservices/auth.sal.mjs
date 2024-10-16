@@ -3,7 +3,7 @@ import cote from 'cote';
 import 'dotenv/config';
 import nodemailer from 'nodemailer';
 import ApiError from './api.error.mjs';
-import { handleError } from '../../deborah/panic.functions.mjs';
+import { handleError } from './api.deborah.mjs';
 
 // Module =======================================================================================================================================================================================================================>
 const sal = new cote.Responder({ name: 'send-activate-link-service', namespace: 'send-activate-link' });

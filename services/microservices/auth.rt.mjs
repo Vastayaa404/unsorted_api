@@ -3,7 +3,7 @@ import cote from 'cote';
 import db from '../../db_auth/models/index.mjs';
 const Token = db.token;
 import ApiError from './api.error.mjs';
-import { handleError } from '../../deborah/panic.functions.mjs';
+import { handleError } from './api.deborah.mjs';
 
 // Module ============================================================ ===========================================================================================================================================================>
 const rt = new cote.Responder({ name: 'refresh-tokens-service', namespace: 'refresh-tokens' });

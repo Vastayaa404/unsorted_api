@@ -1,7 +1,7 @@
 // Import all dependencies ======================================================================================================================================================================================================>
 import cote from 'cote';
 import ApiError from './api.error.mjs';
-import { handleError } from '../../deborah/panic.functions.mjs';
+import { handleError } from './api.deborah.mjs';
 
 // Module =======================================================================================================================================================================================================================>
 const lcv = new cote.Responder({ name: 'log-csp-violation-service', namespace: 'log-csp-violation' });

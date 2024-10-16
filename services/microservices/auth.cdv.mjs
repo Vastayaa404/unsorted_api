@@ -3,7 +3,7 @@ import cote from 'cote';
 import db from '../../db_auth/models/index.mjs';
 const User = db.user;
 import ApiError from './api.error.mjs';
-import { handleError } from '../../deborah/panic.functions.mjs';
+import { handleError } from './api.deborah.mjs';
 
 // Module =======================================================================================================================================================================================================================>
 const cdv = new cote.Responder({ name: 'check-data-is-valid-service', namespace: 'check-data-is-valid' });

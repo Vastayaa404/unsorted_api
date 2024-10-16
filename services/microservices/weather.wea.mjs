@@ -4,7 +4,7 @@ import cote from 'cote';
 import 'dotenv/config';
 import redis from '../../db_redis/models/index.mjs';
 import ApiError from './api.error.mjs';
-import { handleError } from '../../deborah/panic.functions.mjs';
+import { handleError } from './api.deborah.mjs';
 
 // Module =======================================================================================================================================================================================================================>
 const ws = new cote.Responder({ name: 'weather-service', namespace: 'weather' });

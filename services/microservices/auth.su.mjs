@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 import db from '../../db_auth/models/index.mjs';
 const User = db.user;
 import { v4 as uuidv4 } from 'uuid';
-import { handleError } from '../../deborah/panic.functions.mjs';
+import { handleError } from './api.deborah.mjs';
 
 // Module =======================================================================================================================================================================================================================>
 const su = new cote.Responder({ name: 'signup-service', namespace: 'signup' });

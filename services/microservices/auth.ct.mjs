@@ -3,7 +3,7 @@ import cote from 'cote';
 import jwt from 'jsonwebtoken';
 import 'dotenv/config';
 import ApiError from './api.error.mjs';
-import { handleError } from '../../deborah/panic.functions.mjs';
+import { handleError } from './api.deborah.mjs';
 
 // Module =======================================================================================================================================================================================================================>
 const ct = new cote.Responder({ name: 'create-token-service', namespace: 'create-token' });
