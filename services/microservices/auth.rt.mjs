@@ -9,8 +9,8 @@ import { handleError } from './api.deborah.mjs';
 const rt = new cote.Responder({ name: 'refresh-tokens-service', namespace: 'refresh-tokens' });
 const ct = new cote.Requester({ name: 'create-token-service', namespace: 'create-token', timeout: 10000 }); // ct.service
 
-process.on('unhandledRejection', (reason, promise) => handleError('Unhandled Rejection', reason));
-process.on('uncaughtException', (err) => handleError('Uncaught Exception', err));
+process.on('unhandledRejection', (reason, promise) => handleError('Unhandled Rejection', reason, 'refresh-tokens-service'));
+process.on('uncaughtException', (err) => handleError('Uncaught Exception', err, 'refresh-tokens-service'));
 rt.on('refreshTokens', async (req, cb) => {
   try {
     const token = await Token.findOne({ where: { token: req.params.cookies.rt } });

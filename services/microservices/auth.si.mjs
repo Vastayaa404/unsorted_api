@@ -11,8 +11,8 @@ import { handleError } from './api.deborah.mjs';
 const si = new cote.Responder({ name: 'signin-service', namespace: 'signin' });
 const ct = new cote.Requester({ name: 'create-token-service', namespace: 'create-token', timeout: 10000 }); // ct.service
 
-process.on('unhandledRejection', (reason, promise) => handleError('Unhandled Rejection', reason));
-process.on('uncaughtException', (err) => handleError('Uncaught Exception', err));
+process.on('unhandledRejection', (reason, promise) => handleError('Unhandled Rejection', reason, 'signin-service'));
+process.on('uncaughtException', (err) => handleError('Uncaught Exception', err, 'signin-service'));
 si.on('signIn', async (req, cb) => {
   try {
     if (!req.params.body) throw new ApiError(400, "No Data Detected. Aborting")

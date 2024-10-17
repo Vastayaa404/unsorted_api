@@ -8,8 +8,8 @@ import { handleError } from './api.deborah.mjs';
 // Module =======================================================================================================================================================================================================================>
 const cdv = new cote.Responder({ name: 'check-data-is-valid-service', namespace: 'check-data-is-valid' });
 
-process.on('unhandledRejection', (reason, promise) => handleError('Unhandled Rejection', reason));
-process.on('uncaughtException', (err) => handleError('Uncaught Exception', err));
+process.on('unhandledRejection', (reason, promise) => handleError('Unhandled Rejection', reason, 'check-data-is-valid-service'));
+process.on('uncaughtException', (err) => handleError('Uncaught Exception', err, 'check-data-is-valid-service'));
 cdv.on('checkDataIsValid', async (req, cb) => {
   try {
     if (!req.params || !req.params.body) throw new ApiError(400, "No Data Detected. Aborting");

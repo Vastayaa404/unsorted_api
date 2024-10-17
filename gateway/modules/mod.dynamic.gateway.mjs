@@ -17,7 +17,7 @@ await loadInitialData();
 
 const fastify = Fastify();
 fastify.addHook('onRequest', headersConfig)
-.register(cookie, { secret: "my-secret", hook: 'onRequest', parseOptions: {} })
+.register(cookie, { secret: "8jsn;Z,dkEU3HBSk-ksdklSMKa", hook: 'onRequest', parseOptions: {} })
 .route({ method: ['GET', 'POST'], url: '/*', handler: async (req, res) => {
     const routeKey = req.raw.url;
     let routeConfig = routeCache[routeKey];

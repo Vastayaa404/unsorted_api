@@ -6,8 +6,8 @@ import { handleError } from './api.deborah.mjs';
 // Module =======================================================================================================================================================================================================================>
 const lcv = new cote.Responder({ name: 'log-csp-violation-service', namespace: 'log-csp-violation' });
 
-process.on('unhandledRejection', (reason, promise) => handleError('Unhandled Rejection', reason));
-process.on('uncaughtException', (err) => handleError('Uncaught Exception', err));
+process.on('unhandledRejection', (reason, promise) => handleError('Unhandled Rejection', reason, 'log-csp-violation-service'));
+process.on('uncaughtException', (err) => handleError('Uncaught Exception', err, 'log-csp-violation-service'));
 lcv.on('logCSPViolation', async (req, cb) => {
   try {
     if (!req.params || !req.params.body) throw new ApiError(422, "No report data");

@@ -8,8 +8,8 @@ import { handleError } from './api.deborah.mjs';
 // Module =======================================================================================================================================================================================================================>
 const cmt = new cote.Responder({ name: 'create-mail-token-service', namespace: 'create-mail-token' });
 
-process.on('unhandledRejection', (reason, promise) => handleError('Unhandled Rejection', reason));
-process.on('uncaughtException', (err) => handleError('Uncaught Exception', err));
+process.on('unhandledRejection', (reason, promise) => handleError('Unhandled Rejection', reason, 'create-mail-token-service'));
+process.on('uncaughtException', (err) => handleError('Uncaught Exception', err, 'create-mail-token-service'));
 cmt.on('createMailToken', async (req, cb) => {
   try {
     const { created, username } = req.params.user;

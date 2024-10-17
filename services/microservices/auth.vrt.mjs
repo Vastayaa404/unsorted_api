@@ -9,8 +9,8 @@ import { handleError } from './api.deborah.mjs';
 // Module =======================================================================================================================================================================================================================>
 const vrt = new cote.Responder({ name: 'verify-refresh-token-service', namespace: 'verify-refresh-token' });
 
-process.on('unhandledRejection', (reason, promise) => handleError('Unhandled Rejection', reason));
-process.on('uncaughtException', (err) => handleError('Uncaught Exception', err));
+process.on('unhandledRejection', (reason, promise) => handleError('Unhandled Rejection', reason, 'verify-refresh-token-service'));
+process.on('uncaughtException', (err) => handleError('Uncaught Exception', err, 'verify-refresh-token-service'));
 vrt.on('verifyRefreshToken', async (req, cb) => {
   try {
     const token = req.params.cookies?.rt;

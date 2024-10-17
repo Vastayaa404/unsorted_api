@@ -9,8 +9,8 @@ import { handleError } from './api.deborah.mjs';
 // Module =======================================================================================================================================================================================================================>
 const ws = new cote.Responder({ name: 'weather-service', namespace: 'weather' });
 
-process.on('unhandledRejection', (reason, promise) => handleError('Unhandled Rejection', reason));
-process.on('uncaughtException', (err) => handleError('Uncaught Exception', err));
+process.on('unhandledRejection', (reason, promise) => handleError('Unhandled Rejection', reason, 'weather-service'));
+process.on('uncaughtException', (err) => handleError('Uncaught Exception', err, 'weather-service'));
 ws.on('getWeather', async (req, cb) => {
   try {
     if (!req.params.body || !req.params.body.city) throw new ApiError(422, "Invalid JSON data");
