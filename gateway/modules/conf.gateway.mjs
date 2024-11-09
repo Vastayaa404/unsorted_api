@@ -31,6 +31,12 @@ const items = {
       { "service": "weather-service", "namespace": "weather", "action": "getWeather", "attr": "ws", "params": "body" }
     ]
   },
+  "/services/info": {
+    "method": "POST",
+    "middlewares": [
+      { "service": "collect-info-service", "namespace": "collect-info", "action": "collectInfo", "attr": "ci", "params": "body" }
+    ]
+  },
   "/security/csp": {
     "method": "POST",
     "middlewares": [
