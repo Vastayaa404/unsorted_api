@@ -10,9 +10,9 @@ import { loadInitialData } from './conf.gateway.mjs';
 
 // Module =======================================================================================================================================================================================================================>
 if (cluster.isPrimary) {
-  const numCPUs = cpus().length;
+  const numCPUs = 1 //cpus().length;
   for (let i = 0; i < numCPUs; i++) cluster.fork();
-  cluster.on('exit', (worker) => console.log(`cluster ${worker.process.pid} died`)); console.log('Dynamic Gateway Started');
+  cluster.on('exit', (worker) => console.log(`cluster ${worker.process.pid} died`)); console.log(`${numCPUs} Dynamic Gateway Started`);
 } else {
   const coteRequesters = {};
   const routeCache = {};
@@ -26,21 +26,23 @@ if (cluster.isPrimary) {
   fastify.addHook('onRequest', headersConfig)
   .register(cookie, { secret: "8jsn;Z,dkEU3HBSk-ksdklSMKa", hook: 'onRequest', parseOptions: {} })
   .route({ method: ['GET', 'POST'], url: '/*', handler: async (req, res) => {
-      const routeKey = req.raw.url;
-      let routeConfig = routeCache[routeKey];
-  
-      if (!routeConfig) {
-        routeConfig = await redis.hget('route_registry', routeKey);
-        if (!routeConfig) return res.status(404).send({ code: 404, data: `Route ${routeKey} is incorrect, or functionality is not supported` });
-        routeConfig = JSON.parse(routeConfig);
-        routeCache[routeKey] = routeConfig;
-      }
-  
-      const { method, middlewares } = routeConfig;
-      if (!method || !middlewares || middlewares.length === 0) return res.status(200).send({ code: 506, data: `No logic defined for ${routeKey}` });
-      const middlewareResponse = await processMiddlewares(middlewares, req, res);
-      if (middlewareResponse) return res.send(middlewareResponse);
-    },
-  })
+
+    console.log('Получил отпроксированный запрос')
+
+    const routeKey = req.raw.url;
+    let routeConfig = routeCache[routeKey];
+
+    if (!routeConfig) {
+      routeConfig = await redis.hget('route_registry', routeKey);
+      if (!routeConfig) return res.status(404).send({ code: 404, data: `Route ${routeKey} is incorrect, or functionality is not supported` });
+      routeConfig = JSON.parse(routeConfig);
+      routeCache[routeKey] = routeConfig;
+    }
+
+    const { method, middlewares } = routeConfig;
+    if (!method || !middlewares || middlewares.length === 0) return res.status(200).send({ code: 506, data: `No logic defined for ${routeKey}` });
+    const middlewareResponse = await processMiddlewares(middlewares, req, res); // погнали обрабатывать маршрут миддлами
+    if (middlewareResponse) { console.log(middlewareResponse); return res.send(middlewareResponse); }
+    }})
   .listen({ port: 5020, host: '127.0.0.20' }, (err, address) => { if (err) throw err });
 };

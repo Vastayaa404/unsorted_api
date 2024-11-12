@@ -1,5 +1,6 @@
 // Import all dependencies ======================================================================================================================================================================================================>
 import redis from '../../db_redis/models/index.mjs'; // импорт конфигурации Redis
+import { v4 as uuidv4 } from 'uuid';
 
 // Module =======================================================================================================================================================================================================================>
 // Начальная конфигурация маршрутов
@@ -46,7 +47,9 @@ const items = {
 };
 
 const headersConfig = (req, res, next) => {
-  if (req.headers['x-dora-request-id']) { res.header("X-Dora-Request-Id", req.headers['x-dora-request-id']) }
+  req.headers['x-forwarded-for'] = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  req.headers['x-dora-request-id'] = uuidv4();
+  res.header("x-dora-request-id", req.headers['x-dora-request-id'])
   next();
 };
 
@@ -54,10 +57,9 @@ export { headersConfig };
 
 export async function loadInitialData() {
   try {
-    // Загружаем новые стандартные маршруты
     for (const [route, config] of Object.entries(items)) {
       await redis.hset('route_registry', route, JSON.stringify(config));
-      console.log(`Route ${route} loaded`);
+      // console.log(`Route ${route} loaded sucessfully`);
     }
   } catch (err) { console.error("Error loading initial data into Redis:", err) } finally { console.log('Redis routes configured') };
 };
