@@ -46,15 +46,6 @@ const items = {
   },
 };
 
-const headersConfig = (req, res, next) => {
-  req.headers['x-forwarded-for'] = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-  req.headers['x-dora-request-id'] = uuidv4();
-  res.header("x-dora-request-id", req.headers['x-dora-request-id'])
-  next();
-};
-
-export { headersConfig };
-
 export async function loadInitialData() {
   try {
     for (const [route, config] of Object.entries(items)) {
@@ -63,3 +54,18 @@ export async function loadInitialData() {
     }
   } catch (err) { console.error("Error loading initial data into Redis:", err) } finally { console.log('Redis routes configured') };
 };
+
+const corsConfig = {
+  origin: ['http://localhost:5173', 'http://localhost:3000', 'https://weather-now.ru', 'https://www.weather-now.ru', '127.0.0.1', '127.0.0.100:4000'],
+  methods: ['GET', 'POST', 'OPTIONS'],
+  credentials: true
+};
+
+const headersConfig = (req, res, next) => {
+  req.headers['x-forwarded-for'] = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  req.headers['x-dora-request-id'] = uuidv4();
+  res.header("x-dora-request-id", req.headers['x-dora-request-id'])
+  next();
+};
+
+export { corsConfig, headersConfig };
