@@ -7,6 +7,9 @@ import cluster from 'cluster';
 import { cpus } from 'os';
 import { corsConfig, headersConfig, loadInitialData } from './conf.gateway.mjs';
 import redis from '../../db_redis/models/index.mjs';
+import { handleError } from '../../services/microservices/api.deborah.mjs';
+process.on('unhandledRejection', (reason, promise) => handleError('Unhandled Rejection', reason, 'gateway'));
+process.on('uncaughtException', (err) => handleError('Uncaught Exception', err, 'gateway'));
 
 // Module =======================================================================================================================================================================================================================>
 if (cluster.isPrimary) {

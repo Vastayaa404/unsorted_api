@@ -1,16 +1,15 @@
-// Import all dependencies ======================================================================================================================================================================================================>
+// Import all dependencies ======================================================================================================================================================================================================
 import axios from 'axios';
 import cote from 'cote';
 import 'dotenv/config';
 import redis from '../../db_redis/models/index.mjs';
 import ApiError from './api.error.mjs';
 import { handleError } from './api.deborah.mjs';
+process.on('unhandledRejection', (reason, promise) => handleError('Unhandled Rejection', reason, 'weather-service'));
+process.on('uncaughtException', (err) => handleError('Uncaught Exception', err, 'weather-service'));
 
 // Module =======================================================================================================================================================================================================================>
 const ws = new cote.Responder({ name: 'weather-service', namespace: 'weather' });
-
-process.on('unhandledRejection', (reason, promise) => handleError('Unhandled Rejection', reason, 'weather-service'));
-process.on('uncaughtException', (err) => handleError('Uncaught Exception', err, 'weather-service'));
 ws.on('getWeather', async (req, cb) => {
   try {
     if (!req.params.body || !req.params.body.city) throw new ApiError(422, "Invalid JSON data");

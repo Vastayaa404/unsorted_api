@@ -4,12 +4,11 @@ import jwt from 'jsonwebtoken';
 import 'dotenv/config';
 import ApiError from './api.error.mjs';
 import { handleError } from './api.deborah.mjs';
+process.on('unhandledRejection', (reason, promise) => handleError('Unhandled Rejection', reason, 'create-token-service'));
+process.on('uncaughtException', (err) => handleError('Uncaught Exception', err, 'create-token-service'));
 
 // Module =======================================================================================================================================================================================================================>
 const ct = new cote.Responder({ name: 'create-token-service', namespace: 'create-token' });
-
-process.on('unhandledRejection', (reason, promise) => handleError('Unhandled Rejection', reason, 'create-token-service'));
-process.on('uncaughtException', (err) => handleError('Uncaught Exception', err, 'create-token-service'));
 ct.on('createToken', async (req, cb) => {
   try {
     const { id, username } = req.params.user;
