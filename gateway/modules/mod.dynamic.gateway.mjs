@@ -1,4 +1,5 @@
 // Import all dependencies ======================================================================================================================================================================================================>
+import 'dotenv/config';
 import Fastify from 'fastify';
 import cookie from '@fastify/cookie';
 import cote from 'cote';
@@ -6,10 +7,11 @@ import cors from '@fastify/cors';
 import cluster from 'cluster';
 import { cpus } from 'os';
 import { corsConfig, headersConfig, loadInitialData } from './conf.gateway.mjs';
+import { initial } from './conf.functions.mjs';
 import redis from '../../db_redis/models/index.mjs';
 import { handleError } from '../../services/microservices/api.deborah.mjs';
 process.on('unhandledRejection', (reason, promise) => handleError('Unhandled Rejection', reason, 'gateway'));
-process.on('uncaughtException', (err) => handleError('Uncaught Exception', err, 'gateway'));
+process.on('uncaughtException', (err) => handleError('Uncaught Exception', err, 'gateway')); // TODO: Токены в Дэборе поздно появляются, потом разобраться
 
 // Module =======================================================================================================================================================================================================================>
 if (cluster.isPrimary) {
@@ -19,12 +21,12 @@ if (cluster.isPrimary) {
 } else {
   const coteRequesters = {};
   const routeCache = {};
-
+  initial();
+  await loadInitialData();
   const dynamicHook = (rq, type, prm) => async (req, res) => { const r = await new Promise(resolve => rq.send({ type, params: { [prm]: req[prm] } }, resolve)); if (r.data?.refreshToken) { res.cookie("rt", r.data.refreshToken, { maxAge: 86400000, httpOnly: true, secure: true }); delete r.data.refreshToken } return r };
   const getCoteRequester = ({ service, namespace, attr }) => { if (!coteRequesters[attr]) { coteRequesters[attr] = new cote.Requester({ name: service, namespace, timeout: 10000 }) } return coteRequesters[attr] };
   const processMiddlewares = async (middlewares, req, res) => { for (const { service, namespace, action, attr, params } of middlewares) { const requester = getCoteRequester({ service, namespace, attr }); const middlewareResponse = await dynamicHook(requester, action, params)(req, res); if (middlewareResponse !== "next") return middlewareResponse } return null };
-  await loadInitialData();
-
+  
   Fastify().addHook('onRequest', headersConfig).register(cors, corsConfig).register(cookie, { secret: "8jsn;Z,dkEU3HBSk-ksdklSMKa", hook: 'onRequest' })
   .route({
     method: ['GET', 'POST'], url: '/*', handler: async (req, res) => {
