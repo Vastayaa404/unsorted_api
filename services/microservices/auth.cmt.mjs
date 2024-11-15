@@ -1,7 +1,6 @@
 // Import all dependencies ======================================================================================================================================================================================================>
 import cote from 'cote';
 import jwt from 'jsonwebtoken';
-import 'dotenv/config';
 import ApiError from './api.error.mjs';
 import { handleError } from './api.deborah.mjs';
 process.on('unhandledRejection', (reason, promise) => handleError('Unhandled Rejection', reason, 'create-mail-token-service'));

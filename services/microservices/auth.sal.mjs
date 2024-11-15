@@ -1,6 +1,5 @@
 // Import all dependencies ======================================================================================================================================================================================================>
 import cote from 'cote';
-import 'dotenv/config';
 import nodemailer from 'nodemailer';
 import ApiError from './api.error.mjs';
 import { handleError } from './api.deborah.mjs';

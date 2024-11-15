@@ -1,7 +1,6 @@
 // Import all dependencies ======================================================================================================================================================================================================
 import axios from 'axios';
 import cote from 'cote';
-import 'dotenv/config';
 import redis from '../../db_redis/models/index.mjs';
 import ApiError from './api.error.mjs';
 import { handleError } from './api.deborah.mjs';

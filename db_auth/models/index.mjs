@@ -3,15 +3,15 @@ import createRoleModel from './role.model.mjs';
 import createTokenModel from './token.model.mjs';
 import createUserModel from './user.model.mjs';
 import Sequelize from 'sequelize';
-import 'dotenv/config';
+// import 'dotenv/config';
 
 // Module =======================================================================================================================================================================================================================>
 const sequelize = new Sequelize(
-  "auth_db",//process.env.DB_NAME,
-  "postgres",//process.env.DB_USER,
-  "postgres",//process.env.DB_PASSWORD,
+  process.env.DB_NAME,//"auth_db",//process.env.DB_NAME,
+  process.env.DB_USER,//"postgres",//process.env.DB_USER,
+  process.env.DB_PASSWORD,//"postgres",//process.env.DB_PASSWORD,
   {
-    host: "localhost",//process.env.DB_HOST,
+    host: process.env.DB_HOST,//"localhost",//process.env.DB_HOST,
     dialect: 'postgres',
     pool: {
       max: 5,
