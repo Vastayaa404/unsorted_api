@@ -1,11 +1,11 @@
 // Import all dependencies ======================================================================================================================================================================================================>
 import cote from 'cote';
-import db from '../../db_auth/models/index.mjs';
+import db from '../databases/index.postgres.mjs';
 const Token = db.token;
 import ApiError from './api.error.mjs';
 import { handleError } from './api.deborah.mjs';
-process.on('unhandledRejection', (reason, promise) => handleError('Unhandled Rejection', reason, 'refresh-tokens-service'));
-process.on('uncaughtException', (err) => handleError('Uncaught Exception', err, 'refresh-tokens-service'));
+process.on('unhandledRejection', (reason, promise) => handleError('Error Rejection', reason, 'refresh-tokens-service'));
+process.on('uncaughtException', (err) => handleError('Error Exception', err, 'refresh-tokens-service'));
 
 // Module ============================================================ ===========================================================================================================================================================>
 const rt = new cote.Responder({ name: 'refresh-tokens-service', namespace: 'refresh-tokens' });

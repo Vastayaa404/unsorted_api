@@ -2,8 +2,8 @@
 import cote from 'cote';
 import ApiError from './api.error.mjs';
 import { handleError } from './api.deborah.mjs';
-process.on('unhandledRejection', (reason, promise) => handleError('Unhandled Rejection', reason, 'log-csp-violation-service'));
-process.on('uncaughtException', (err) => handleError('Uncaught Exception', err, 'log-csp-violation-service'));
+process.on('unhandledRejection', (reason, promise) => handleError('Error Rejection', reason, 'log-csp-violation-service'));
+process.on('uncaughtException', (err) => handleError('Error Exception', err, 'log-csp-violation-service'));
 
 // Module =======================================================================================================================================================================================================================>
 const lcv = new cote.Responder({ name: 'log-csp-violation-service', namespace: 'log-csp-violation' });

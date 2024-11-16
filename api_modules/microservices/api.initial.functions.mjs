@@ -1,5 +1,5 @@
 // Import all dependencies ======================================================================================================================================================================================================>
-import { loadInitialData } from "../../gateway/modules/conf.gateway.mjs"
+import { loadInitialData } from "../gateway/conf.gateway.mjs"
 import { handleStartMessage, handleError } from "./api.deborah.mjs"
 
 // Module =======================================================================================================================================================================================================================>
@@ -10,15 +10,15 @@ export const initial = async () => {
     const startLoadTimestamp = new Date();
     const version = '0.0.1'
   
-    // await loadInitialData();
-    async function loadInitialData() {
-      throw new Error('Failed to load initial data'); // Искусственная ошибка
-    }
+    await loadInitialData();
+    // async function loadInitialData() {
+    //   throw new Error('Failed to load initial data'); // Искусственная ошибка
+    // }
     
-    // Немедленный вызов асинхронной функции на верхнем уровне, но без обработки
-    (async () => {
-      await loadInitialData();
-    })();
+    // // Немедленный вызов асинхронной функции на верхнем уровне, но без обработки
+    // (async () => {
+    //   await loadInitialData();
+    // })();
 
     await handleStartMessage('Initialized', status, buildVersion, startLoadTimestamp, version)
   } catch (e) { handleError('Error', e, 'initial-functions' ) }

@@ -3,8 +3,8 @@ import cote from 'cote';
 import jwt from 'jsonwebtoken';
 import ApiError from './api.error.mjs';
 import { handleError } from './api.deborah.mjs';
-process.on('unhandledRejection', (reason, promise) => handleError('Unhandled Rejection', reason, 'create-mail-token-service'));
-process.on('uncaughtException', (err) => handleError('Uncaught Exception', err, 'create-mail-token-service'));
+process.on('unhandledRejection', (reason, promise) => handleError('Error Rejection', reason, 'create-mail-token-service'));
+process.on('uncaughtException', (err) => handleError('Error Exception', err, 'create-mail-token-service'));
 
 // Module =======================================================================================================================================================================================================================>
 const cmt = new cote.Responder({ name: 'create-mail-token-service', namespace: 'create-mail-token' });

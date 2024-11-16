@@ -1,13 +1,13 @@
 // Import all dependencies ======================================================================================================================================================================================================>
 import cote from 'cote';
 import bcrypt from 'bcryptjs';
-import db from '../../db_auth/models/index.mjs';
+import db from '../databases/index.postgres.mjs';
 const Token = db.token;
 const User = db.user;
 import ApiError from './api.error.mjs';
 import { handleError } from './api.deborah.mjs';
-process.on('unhandledRejection', (reason, promise) => handleError('Unhandled Rejection', reason, 'signin-service'));
-process.on('uncaughtException', (err) => handleError('Uncaught Exception', err, 'signin-service'));
+process.on('unhandledRejection', (reason, promise) => handleError('Error Rejection', reason, 'signin-service'));
+process.on('uncaughtException', (err) => handleError('Error Exception', err, 'signin-service'));
 
 // Module =======================================================================================================================================================================================================================>
 const si = new cote.Responder({ name: 'signin-service', namespace: 'signin' });

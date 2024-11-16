@@ -1,8 +1,8 @@
 // Import all dependencies ======================================================================================================================================================================================================>
 import cote from 'cote';
 import { handleError } from './api.deborah.mjs';
-process.on('unhandledRejection', (reason, promise) => handleError('Unhandled Rejection', reason, 'status-service'));
-process.on('uncaughtException', (err) => handleError('Uncaught Exception', err, 'status-service'));
+process.on('unhandledRejection', (reason, promise) => handleError('Error Rejection', reason, 'status-service'));
+process.on('uncaughtException', (err) => handleError('Error Exception', err, 'status-service'));
 
 // Module =======================================================================================================================================================================================================================>
 const ss = new cote.Responder({ name: 'status-service', namespace: 'status' });

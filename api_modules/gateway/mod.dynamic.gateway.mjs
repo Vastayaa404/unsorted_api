@@ -1,15 +1,16 @@
 // Import all dependencies ======================================================================================================================================================================================================>
+import 'dotenv/config'
 import Fastify from 'fastify';
 import cookie from '@fastify/cookie';
 import cote from 'cote';
 import cors from '@fastify/cors';
 import cluster from 'cluster';
 import { corsConfig, headersConfig } from './conf.gateway.mjs';
-import { initial } from '../../services/microservices/api.initial.functions.mjs';
-import redis from '../../db_redis/models/index.mjs';
-import { handleError } from '../../services/microservices/api.deborah.mjs';
-process.on('unhandledRejection', (reason, promise) => handleError('Unhandled Rejection', reason, 'gateway'));
-process.on('uncaughtException', (err) => handleError('Uncaught Exception', err, 'gateway')); // TODO: Токены в Дэборе поздно появляются, потом разобраться
+import { initial } from '../microservices/api.initial.functions.mjs';
+import redis from '../databases/index.redis.mjs';
+import { handleError } from '../microservices/api.deborah.mjs';
+process.on('unhandledRejection', (reason, promise) => handleError('FATAL Rejection', reason, 'gateway'));
+process.on('uncaughtException', (err) => handleError('FATAL Exception', err, 'gateway')); // TODO: Токены в Дэборе поздно появляются, потом разобраться
 
 // Module =======================================================================================================================================================================================================================>
 if (cluster.isPrimary) {

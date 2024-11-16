@@ -3,8 +3,8 @@ import cote from 'cote';
 import nodemailer from 'nodemailer';
 import ApiError from './api.error.mjs';
 import { handleError } from './api.deborah.mjs';
-process.on('unhandledRejection', (reason, promise) => handleError('Unhandled Rejection', reason, 'send-activate-link-service'));
-process.on('uncaughtException', (err) => handleError('Uncaught Exception', err, 'send-activate-link-service'));
+process.on('unhandledRejection', (reason, promise) => handleError('Error Rejection', reason, 'send-activate-link-service'));
+process.on('uncaughtException', (err) => handleError('Error Exception', err, 'send-activate-link-service'));
 
 // Module =======================================================================================================================================================================================================================>
 const sal = new cote.Responder({ name: 'send-activate-link-service', namespace: 'send-activate-link' });
@@ -14,7 +14,6 @@ sal.on('sendActivateLink', async (req, cb) => {
     const date = new Date();
     const user = { username: req.params.body.username, created: date.toString() };
     const r = await new Promise(resolve => cmt.send({ type: 'createMailToken', params: { user } }, resolve)); if (r.code > 399) throw new ApiError(r.code, r.data);
-    console.log(JSON.stringify(r))
     if (!process.env.MAIL_HOST || !process.env.MAIL_PORT || !process.env.MAIL_USER || !process.env.MAIL_PASSWORD || !process.env.MAIL_DOMAIN) throw new ApiError(501, "SAL an error occurred while receiving the secret keys");
 
     const transporter = nodemailer.createTransport({
