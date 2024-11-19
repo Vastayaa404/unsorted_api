@@ -3,27 +3,21 @@ import 'dotenv/config';
 import axios from 'axios';
 
 // Module =======================================================================================================================================================================================================================>
-export const handleError = async (event, error, service) => {
+const sendTelegramMessage = async (text) => {
   try {
-    const now = Date.now();
     const token = process.env.TG_API_BOT_KEY;
     const chatId = process.env.TG_API_CHAT_KEY;
-    const text = encodeURIComponent(`Panicfull-${now}:\n\n${event} occurred: ${error.message}.\n\nTarget: Dora\nMicroservice: ${service}\n\n---------- TRACEBACK ----------\n${error.stack}\n---------- END  STACK ----------`);
-    const url = `https://api.telegram.org/bot${token}/sendMessage?chat_id=${chatId}&text=${text}`;
-  
-    try { await axios.post(url) } catch (e) { console.error('Error sending message to Telegram:', e.message) };
-  } catch (e) { console.log(`Deborah Critical Error, ${e.message}`) }
+    const url = `https://api.telegram.org/bot${token}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(text)}`;
+    await axios.post(url);
+  } catch (e) { console.error('Error sending message to Telegram:', e.message) };
 };
 
-export const handleStartMessage = async (msg, ...params) => {
-  try {
-    const [status, version, startLoadTimestamp, buildVersion] = params;
+export const handleError = async (event, error, service) => {
+  const now = Date.now(); const text = `Panicfull-${now}:\n\n${event} occurred: ${error.message}.\n\nTarget: Dora\nMicroservice: ${service}\n\n---------- TRACEBACK ----------\n${error.stack}\n---------- END  STACK ----------`;
+  try { await sendTelegramMessage(text) } catch (e) { console.log(`Deborah Critical Error, ${e.message}`) };
+};
 
-    const token = process.env.TG_API_BOT_KEY;
-    const chatId = process.env.TG_API_CHAT_KEY;
-    const text = encodeURIComponent(`System Started ( DORA 0-0-0 ) Message:\n\nBackend System Status: ${status}.\nSystem build: ${buildVersion}\nItem Version: ${version}\n\nStarted at: ${startLoadTimestamp}\n---------- END  STACK ----------`);
-    const url = `https://api.telegram.org/bot${token}/sendMessage?chat_id=${chatId}&text=${text}`;
-  
-    try { await axios.post(url) } catch (e) { handleError('Warn Error', e, 'deborah') };
-  } catch (e) { handleError('Error Error', e, 'deborah') }
+export const handleStartMessage = async (msg, status, buildVersion, startLoadTimestamp, version) => {
+  const text = `System Started ( DORA ${version} ) Message:\n\nBackend System Status: ${status}.\nSystem build: ${buildVersion}\nItem Version: ${version}\n\nStarted at: ${startLoadTimestamp}\n---------- END  STACK ----------`;
+  try { await sendTelegramMessage(text) } catch (e) { console.log(`Deborah Critical Error, ${e.message}`) };
 };
