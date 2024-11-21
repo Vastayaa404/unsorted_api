@@ -27,6 +27,7 @@ if (cluster.isPrimary) {
   
   Fastify().addHook('onRequest', headersConfig).register(cors, corsConfig).register(cookie, { secret: "8jsn;Z,dkEU3HBSk-ksdklSMKa", hook: 'onRequest' })
   .route({method: ['GET', 'POST'], url: '/*', handler: async (req, res) => {
+    try {
       if (await redis.get('Dora:State') !== 'AFU') return res.status(503).send({ code: 503, data: 'System in Lockdown' });
       const routeKey = req.raw.url;
       let routeConfig = routeCache[routeKey] || JSON.parse(await redis.hget('route_registry', routeKey));
@@ -39,6 +40,5 @@ if (cluster.isPrimary) {
 
       const middlewareResponse = await processMiddlewares(middlewares, req, res);
       if (middlewareResponse) res.send(middlewareResponse);
-    }
-  }).listen({ port: 5000, host: '127.0.0.10' }, (err, address) => { if (err) throw err });
+    } catch (e) { res.status(502).send({ code: 502, data: 'Bad Cat' }) } }}).listen({ port: 5000, host: '127.0.0.10' }, (err, address) => { if (err) throw err });
 };
