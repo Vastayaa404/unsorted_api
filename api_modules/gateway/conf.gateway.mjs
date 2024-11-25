@@ -64,7 +64,7 @@ const corsConfig = {
 const headersConfig = (req, res, next) => {
   req.headers['x-forwarded-for'] = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
   req.headers['x-dora-request-id'] = uuidv4();
-  res.header("x-dora-request-id", req.headers['x-dora-request-id'])
+  res.header('x-dora-request-id', req.headers['x-dora-request-id'])
   next();
 };
 

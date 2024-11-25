@@ -10,7 +10,7 @@ export const initial = async () => {
   try {
     try {
       redis.set('Dora:State', 'BFU');
-      const resp = await axios.post('http://127.0.0.100:4000/a', { clientType: "backend", prjName: "Dora", preValidation: "API_KEY_FOR_BACK" });
+      const resp = await axios.post('http://127.0.0.100:4000', { clientType: "backend", prjName: "Dora", preValidation: "API_KEY_FOR_BACK" });
       const { sessionID, backendIP } = resp?.data;
       console.log(sessionID, backendIP)
       await redis.set('Dora:State', 'AFU');
