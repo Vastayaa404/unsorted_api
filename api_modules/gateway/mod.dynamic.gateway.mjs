@@ -39,6 +39,6 @@ if (cluster.isPrimary) {
       if (!method || !middlewares?.length) return res.status(200).send({ code: 506, data: `No logic defined for ${routeKey}` });
 
       const middlewareResponse = await processMiddlewares(middlewares, req, res);
-      if (middlewareResponse) res.send(middlewareResponse);
-    } catch (e) { res.status(502).send({ code: 502, data: 'Bad Cat' }) } }}).listen({ port: 5000, host: '127.0.0.10' }, (err, address) => { if (err) throw err });
+      if (middlewareResponse) return res.send(middlewareResponse);
+    } catch (e) { return res.status(502).send({ code: 502, data: 'Bad Cat' }) } }}).listen({ port: 5000, host: '127.0.0.10' }, (err, address) => { if (err) throw err }); // ДОбавлен return для точного сброса кода (проверить)
 };
