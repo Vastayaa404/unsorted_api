@@ -1,7 +1,7 @@
 // Import all dependencies ======================================================================================================================================================================================================>
 import cote from 'cote';
 import bcrypt from 'bcryptjs';
-import db from '../databases/index.postgres.mjs';
+import db from '../gateway/conf.postgres.mjs';
 const Token = db.token;
 const User = db.user;
 import ApiError from './api.error.mjs';

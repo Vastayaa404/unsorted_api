@@ -1,6 +1,6 @@
 // Import all dependencies ======================================================================================================================================================================================================>
 import cote from 'cote';
-import db from '../databases/index.postgres.mjs';
+import db from '../gateway/conf.postgres.mjs';
 const User = db.user;
 import ApiError from './api.error.mjs';
 import { handleError } from './api.deborah.mjs';

@@ -1,9 +1,8 @@
 // Import all dependencies ======================================================================================================================================================================================================>
-import redis from '../databases/index.redis.mjs'; // импорт конфигурации Redis
+import redis from './conf.redis.mjs'; // импорт конфигурации Redis
 import { v4 as uuidv4 } from 'uuid';
 
 // Module =======================================================================================================================================================================================================================>
-// Начальная конфигурация маршрутов
 const items = {
   "/auth/signin": {
     "method": "POST",
@@ -46,17 +45,10 @@ const items = {
   },
 };
 
-export async function loadInitialData() {
-  try {
-    for (const [route, config] of Object.entries(items)) {
-      await redis.hset('route_registry', route, JSON.stringify(config));
-      // console.log(`Route ${route} loaded sucessfully`);
-    }
-  } catch (err) { console.error("Error loading initial data into Redis:", err) } finally { console.log('Redis routes configured') };
-};
+export async function loadInitialData() { try { for (const [route, config] of Object.entries(items)) { await redis.hset('route_registry', route, JSON.stringify(config)) } } catch (err) { console.error("Error loading initial data into Redis:", err) } finally { console.log('Redis routes configured') } };
 
 const corsConfig = {
-  origin: ['http://localhost:5173', 'http://localhost:3000', 'https://weather-now.ru', 'https://www.weather-now.ru', '127.0.0.1', '127.0.0.100:4000'],
+  origin: ['https://weather-now.ru', 'https://www.weather-now.ru', '127.0.0.1', '127.0.0.100:4000'],
   methods: ['GET', 'POST', 'OPTIONS'],
   credentials: true
 };

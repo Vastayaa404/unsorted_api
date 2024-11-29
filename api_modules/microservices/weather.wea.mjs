@@ -1,7 +1,7 @@
 // Import all dependencies ======================================================================================================================================================================================================
 import axios from 'axios';
 import cote from 'cote';
-import redis from '../databases/index.redis.mjs';
+import redis from '../gateway/conf.redis.mjs';
 import ApiError from './api.error.mjs';
 import { handleError } from './api.deborah.mjs';
 process.on('unhandledRejection', (reason, promise) => handleError('Error Rejection', reason, 'weather-service'));

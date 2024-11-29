@@ -1,20 +1,19 @@
 // Import all dependencies ======================================================================================================================================================================================================>
 import axios from "axios"
 import 'dotenv/config';
-import redis from "../databases/index.redis.mjs";
+import redis from "../gateway/conf.redis.mjs";
 import { loadInitialData } from "../gateway/conf.gateway.mjs"
 import { handleStartMessage, handleError } from "./api.deborah.mjs"
 
 // Module =======================================================================================================================================================================================================================>
-export const initial = async () => {
+export const initialSystem = async () => {
   try {
     try {
       redis.set('Dora:State', 'BFU');
-      const resp = await axios.post('http://127.0.0.100:4000', { clientType: "backend", prjName: "Dora", preValidation: "API_KEY_FOR_BACK" });
-      const { sessionID, backendIP } = resp?.data;
-      console.log(sessionID, backendIP)
+      const resp = await axios.post('http://127.0.0.100:4430', { clientType: "backend", prjName: "Dora", preValidation: "API_KEY_FOR_BACK" });
+      console.log(resp?.data);
       await redis.set('Dora:State', 'AFU');
-    } catch (e) { console.log(`Axios First Initial Error, ${e}`) }
+    } catch (e) { console.log(`Cocoa First Initial Error, ${e}`) }
 
     await loadInitialData();
 

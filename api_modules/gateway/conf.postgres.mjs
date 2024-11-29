@@ -1,8 +1,8 @@
 // Import all dependencies ======================================================================================================================================================================================================>
 import 'dotenv/config';
-import createRoleModel from './role.model.mjs';
-import createTokenModel from './token.model.mjs';
-import createUserModel from './user.model.mjs';
+import createRoleModel from './conf.role.model.mjs';
+import createTokenModel from './conf.token.model.mjs';
+import createUserModel from './conf.user.model.mjs';
 import Sequelize from 'sequelize';
 
 // Module =======================================================================================================================================================================================================================>

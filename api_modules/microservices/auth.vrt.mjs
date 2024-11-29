@@ -1,7 +1,7 @@
 // Import all dependencies ======================================================================================================================================================================================================>
 import cote from 'cote';
 import jwt from 'jsonwebtoken';
-import db from '../databases/index.postgres.mjs';
+import db from '../gateway/conf.postgres.mjs';
 const Token = db.token;
 import ApiError from './api.error.mjs';
 import { handleError } from './api.deborah.mjs';

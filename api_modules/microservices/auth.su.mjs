@@ -1,9 +1,9 @@
 // Import all dependencies ======================================================================================================================================================================================================>
+import { v4 as uuidv4 } from 'uuid';
 import cote from 'cote';
 import bcrypt from 'bcryptjs';
-import db from '../databases/index.postgres.mjs';
+import db from '../gateway/conf.postgres.mjs';
 const User = db.user;
-import { v4 as uuidv4 } from 'uuid';
 import { handleError } from './api.deborah.mjs';
 process.on('unhandledRejection', (reason, promise) => handleError('Error Rejection', reason, 'signup-service'));
 process.on('uncaughtException', (err) => handleError('Error Exception', err, 'signup-service'));
