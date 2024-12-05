@@ -24,7 +24,6 @@ Fastify().addHook('onRequest', headersConfig).register(cors, corsConfig).registe
     if (await redis.get('Dora:State') !== 'AFU') return res.status(503).send({ code: 503, data: 'System in Lockdown' });
     const routeKey = req.raw.url;
     let routeConfig = routeCache[routeKey] || JSON.parse(await redis.hget('route_registry', routeKey));
-    
     if (!routeConfig) return res.status(404).send({ code: 404, data: `Route ${routeKey} is incorrect or unsupported` });
     routeCache[routeKey] = routeConfig;
 
