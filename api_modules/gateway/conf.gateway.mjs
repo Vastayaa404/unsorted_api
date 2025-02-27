@@ -60,4 +60,4 @@ const headersConfig = (req, res, next) => {
   next();
 };
 
-export { corsConfig, headersConfig };
+export { corsConfig, headersConfig, items };
