@@ -5,17 +5,17 @@ import { v4 as uuidv4 } from 'uuid';
 // Module =======================================================================================================================================================================================================================>
 const items = {
   "/auth/signin": {
-    "method": "POST",
-    "middlewares": [
+    method: "POST",
+    middlewares: [
       { "service": "signin-service", "namespace": "signin", "action": "signIn", "attr": "si", "params": "body" }
     ]
   },
   "/auth/signup": {
-    "method": "POST",
-    "middlewares": [
-      { "service": "check-data-is-valid-service", "namespace": "check-data-is-valid", "action": "checkDataIsValid", "attr": "cdv", "params": "body" },
-      { "service": "send-activate-link-service", "namespace": "send-activate-link", "action": "sendActivateLink", "attr": "sal", "params": "body" },
-      { "service": "signup-service", "namespace": "signup", "action": "signUp", "attr": "su", "params": "body" }
+    method: "POST",
+    middlewares: [
+      { "service": "check-data-is-valid-service", "namespace": "check-data-is-valid", "action": "checkDataIsValid", "attr": "cdv", "params": "body", host: "localhost", port: 50051 },
+      { "service": "send-activate-link-service", "namespace": "send-activate-link", "action": "sendActivateLink", "attr": "sal", "params": "body", host: "localhost", port: 50052 },
+      { "service": "signup-service", "namespace": "signup", "action": "signUp", "attr": "su", "params": "body", "host": "localhost", "port": 50053 }
     ]
   },
   "/auth/refresh": {

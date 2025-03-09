@@ -1,50 +1,50 @@
-// Import all dependencies ======================================================================================================================================================================================================>
-import 'dotenv/config'
 import Fastify from 'fastify';
 import cookie from '@fastify/cookie';
 import cors from '@fastify/cors';
 import redis from './conf.redis.mjs';
 import { corsConfig, headersConfig } from './conf.gateway.mjs';
-import { getRequester, warmupRequesters } from './service.accelerator.mjs';
 import { initialSystem } from '../microservices/api.initial.functions.mjs';
-// import { handleError } from '../microservices/api.deborah.mjs';
-// process.on('unhandledRejection', (reason, promise) => handleError('FATAL Rejection', reason, 'gateway'));
-// process.on('uncaughtException', (err) => handleError('FATAL Exception', err, 'gateway'));
+import grpc from '@grpc/grpc-js';
+import protoLoader from '@grpc/proto-loader';
 
-// Module =======================================================================================================================================================================================================================>
-const routeCache = {};
-await initialSystem();
-await warmupRequesters();
+const PROTO_PATH = './pipeline.proto';
+const packageDefinition = protoLoader.loadSync(PROTO_PATH, { keepCase: true, longs: String, enums: String, defaults: true, oneofs: true });
+const pipelineProto = grpc.loadPackageDefinition(packageDefinition).pipeline;
+const [grpcClients, routeCache] = [{}, {}];
 
-/**
- * Функция для перенаправления запроса в первый микросервис (точку входа)
- * в соответствии с конфигурацией маршрута.
- */
-async function forwardRequestToEntryService(routeConfig, req, res) {
-  // Выбираем первый middleware как entry-point
-  const entry = routeConfig.middlewares[0];
-  const { service, namespace, attr, params } = entry;
-  // Получаем cote Requester (лениво инициализированный)
-  const requester = getRequester({ service, namespace, attr });
-  // Подготавливаем payload – передаём всю информацию из req[params] (например, body или cookies)
-  const payload = { type: entry.action, params: { [params]: req[params] } };
-  
-  // Здесь можно обернуть вызов в circuit breaker для более быстрой обработки ошибок
-  return new Promise((resolve) => { requester.send(payload, (result) => { resolve(result) }) });
+initialSystem()
+
+function getGrpcClient(serviceConfig) {
+  const key = `${serviceConfig.host}:${serviceConfig.port}`;
+  if (!grpcClients[key] && serviceConfig.host && serviceConfig.port) grpcClients[key] = new pipelineProto.PipelineService(`${serviceConfig.host}:${serviceConfig.port}`, grpc.credentials.createInsecure());
+  return grpcClients[key];
 }
 
-const fastify = Fastify();
+function processRequest(client, requestData) { return new Promise((resolve, reject) => { client.Process(requestData, (err, response) => { if (err) return reject(err); resolve(response) }) }) };
 
-fastify.addHook('onRequest', headersConfig).register(cors, corsConfig).register(cookie, { secret: "8jsn;Z,dkEU3HBSk-ksdklSMKa", hook: 'onRequest' })
-.route({ method: ['GET', 'POST'], url: '/*', handler: async (req, res) => {
+Fastify().addHook('onRequest', headersConfig).register(cors, corsConfig).register(cookie, { secret: "8jsn;Z,dkEU3HBSk-ksdklSMKa", hook: 'onRequest' }).setErrorHandler((err, req, res) => { res.status(err.statusCode ?? 500).send({ code: err.statusCode ?? 500, message: err.message }) })
+.route({ method: ['POST', 'GET'], url: '/*', handler: async (req, res) => {
+  console.log('Попадание в гейтвей')
+
+  const routeKey = req.raw.url;
+  const routeConfig = routeCache[routeKey] ?? JSON.parse(await redis.hget('route_registry', routeKey)); // TODO: упростить конфиг
+  console.log('route key: ', JSON.parse(await redis.hget('route_registry', routeKey)))
+  if (!routeConfig) return res.status(404).send({ code: 404, message: `Route ${routeKey} is not supported` });
+  routeCache[routeKey] = routeConfig;
+  console.log('Попадание в маршрут')
+
+  // Формируем данные запроса. Тело запроса преобразуем в строку (ожидается JSON)
+  const requestData = { endpoint: req.raw.url, body: JSON.stringify(req.body || {}), cookies: req.cookies || {}, context: {} };
+
+  const firstServiceConfig = routeConfig.middlewares[0];
+  const client = getGrpcClient(firstServiceConfig);
+  console.log('Обрабатываем')
+    
   try {
-    // if (await redis.get('Dora:State') !== 'AFU') return res.status(503).send({ code: 503, data: 'System in Lockdown' });
-    const routeKey = req.raw.url;
-    let routeConfig = routeCache[routeKey] || JSON.parse(await redis.hget('route_registry', routeKey));
-    if (!routeConfig) return res.status(404).send({ code: 404, data: `Route ${routeKey} is incorrect or unsupported` });
-    routeCache[routeKey] = routeConfig;
-    if (!routeConfig.method || !routeConfig.middlewares?.length) return res.status(506).send({ code: 506, data: `No logic defined for ${routeKey}` });
-    // Перенаправляем запрос в entry‑микросервис
-    const serviceResponse = await forwardRequestToEntryService(routeConfig, req, res);
-    return res.send(serviceResponse);
-} catch (e) { return res.status(502).send({ code: 502, data: 'Bad Backend' }) } } }).listen({ port: 5000, host: '127.0.0.10' }, (err, address) => { if (err) throw err });
+    const response = await processRequest(client, requestData);
+    console.log('Отвечаем: ', response)
+    res.send({code: response.code, message: response.message});
+  } catch (err) {
+    res.status(502).send({ code: 502, message: err.details ?? 'Request cannot be processed' });
+  }
+} }).listen({ port: 5000, host: '127.0.0.10' }, (err, address) => { if (err) { console.error('Error starting gateway:', err); process.exit(1); } console.log(`Gateway listening at ${address}`); });

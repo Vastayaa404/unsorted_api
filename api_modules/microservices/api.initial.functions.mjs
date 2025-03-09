@@ -16,8 +16,8 @@ export const initialSystem = async () => {
     const version = '0.0.1';
 
     try {
-      redis.set('Dora:State', 'BFU');
-      const resp = await axios.post('https://127.0.0.100:4430', { "request": "backend" }, { headers: { 'x-proxy-token': token } });
+      // redis.set('Dora:State', 'BFU');
+      // const resp = await axios.post('https://127.0.0.100:4430', { "request": "backend" }, { headers: { 'x-proxy-token': token } });
       console.log(resp?.data);
       await redis.set('Dora:State', 'AFU');
     } catch (e) { console.log(`Cocoa First Initial Error, ${e}`) }

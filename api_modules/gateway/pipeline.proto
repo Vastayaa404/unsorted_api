@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package pipeline;
+
+// Запрос содержит endpoint, тело запроса (в виде JSON строки), куки и контекст для промежуточных данных.
+message RequestData {
+  string endpoint = 1;
+  string body = 2;
+  map<string, string> cookies = 3;
+  map<string, string> context = 4;
+}
+
+// Ответ включает код, сообщение, обновлённый контекст и флаг, нужно ли продолжать конвейер.
+message ResponseData {
+  int32 code = 1;
+  string message = 2;
+  map<string, string> context = 3;
+  bool continuePipeline = 4;
+}
+
+// Сервис обработки запроса (используется во всех звеньях конвейера).
+service PipelineService {
+  rpc Process (RequestData) returns (ResponseData);
+}
