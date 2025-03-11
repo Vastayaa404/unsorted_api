@@ -1,5 +1,4 @@
 // Import all dependencies ======================================================================================================================================================================================================>
-// import cote from 'cote';
 // import nodemailer from 'nodemailer';
 // import ApiError from './api.error.mjs';
 // import { handleError } from './api.deborah.mjs';
@@ -21,53 +20,40 @@ const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
   oneofs: true
 });
 const pipelineProto = grpc.loadPackageDefinition(packageDefinition).pipeline;
+const suClient = new pipelineProto.PipelineService('localhost:50053', grpc.credentials.createInsecure()); // next service
 
-// Клиент для следующего микросервиса (SU)
-const suClient = new pipelineProto.PipelineService('localhost:50053', grpc.credentials.createInsecure());
-
-function processData(call, callback) {
-  const reqData = call.request;
-  let body;
+async function processData(call, callback) {
   try {
-    body = JSON.parse(reqData.body);
-  } catch (e) {
-    return callback({
-      code: grpc.status.INVALID_ARGUMENT,
-      details: 'Invalid JSON body'
+    const reqData = call.request;
+    const { MAIL_HOST, MAIL_PORT, MAIL_USER, MAIL_PASSWORD, MAIL_DOMAIN } = process.env;
+    // if (!MAIL_HOST || !MAIL_PORT || !MAIL_USER || !MAIL_PASSWORD || !MAIL_DOMAIN) return callback(null, { code: 501, data: 'Mail service error' });
+
+    const transporter = nodemailer.createTransport({
+      host: MAIL_HOST,
+      port: Number(MAIL_PORT),
+      secure: false,
+      auth: {
+        user: MAIL_USER,
+        pass: MAIL_PASSWORD
+      },
     });
-  }
 
-  // Проверяем наличие необходимых параметров для отправки email
-  const { MAIL_HOST, MAIL_PORT, MAIL_USER, MAIL_PASSWORD, MAIL_DOMAIN } = process.env;
-  if (!MAIL_HOST || !MAIL_PORT || !MAIL_USER || !MAIL_PASSWORD || !MAIL_DOMAIN) {
-    return callback(null, {
-      code: 501,
-      message: 'Mail configuration is missing',
-      context: {},
-      continuePipeline: false
+    // await transporter.sendMail({
+    //   from: MAIL_DOMAIN,
+    //   to: body.email,
+    //   subject: "Verify Email",
+    //   text: `Click on the link below to verify your account: 'this is link :3'/${body.email}`,
+    // });
+
+    const response = await new Promise((resolve, reject) => {
+      suClient.Process(reqData, (err, res) => {
+        if (err) return reject(err);
+        resolve(res);
+      });
     });
-  }
 
-  // Создаем транспорт для отправки email
-  const transporter = nodemailer.createTransport({
-    host: MAIL_HOST,
-    port: Number(MAIL_PORT),
-    secure: false,
-    auth: {
-      user: MAIL_USER,
-      pass: MAIL_PASSWORD
-    },
-  });
-
-  // Здесь можно отправить email с ссылкой активации.
-  // Для примера симулируем успешную отправку.
-  reqData.context.activation = 'link sent';
-
-  // Передаем обработку следующему сервису (SU)
-  suClient.Process(reqData, (err, res) => {
-    if (err) return callback(err);
-    callback(null, res);
-  });
+    return callback(null, response);
+  } catch (err) { return callback(err) }
 }
 
 const server = new grpc.Server();

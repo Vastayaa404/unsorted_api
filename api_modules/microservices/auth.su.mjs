@@ -12,46 +12,22 @@ import grpc from '@grpc/grpc-js';
 import protoLoader from '@grpc/proto-loader';
 import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcryptjs';
-// Здесь можно подключить конфигурацию базы данных, например:
-// import db from './conf.postgres.mjs';
+import db from '../gateway/conf.postgres.mjs';
+const User = db.user;
 
 const PROTO_PATH = '../gateway/pipeline.proto';
-const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
-  keepCase: true,
-  longs: String,
-  enums: String,
-  defaults: true,
-  oneofs: true
-});
+const packageDefinition = protoLoader.loadSync(PROTO_PATH, { keepCase: true, longs: String, enums: String, defaults: true, oneofs: true });
 const pipelineProto = grpc.loadPackageDefinition(packageDefinition).pipeline;
 
-function processData(call, callback) {
-  const reqData = call.request;
-  let body;
+async function processData(call, callback) {
   try {
-    body = JSON.parse(reqData.body);
-  } catch (e) {
-    return callback({
-      code: grpc.status.INVALID_ARGUMENT,
-      details: 'Invalid JSON body'
-    });
-  }
+    const reqData = call.request;
+    const body = JSON.parse(reqData.body);
+    
+    await User.create({ userId: uuidv4(), username: body.username, email: body.email, password: bcrypt.hashSync(body.password, 8) }).then(u => u.setRoles([1]));
 
-  // Выполнение логики регистрации пользователя.
-  // Например, генерируем ID, хешируем пароль и сохраняем данные в БД.
-  const userId = uuidv4();
-  const hashedPassword = bcrypt.hashSync(body.password, 8);
-  // Здесь должна быть логика сохранения пользователя в БД.
-  // Для примера считаем, что пользователь успешно создан.
-  reqData.context.signup = 'user created';
-
-  // Возвращаем итоговый ответ
-  callback(null, {
-    code: 201,
-    message: 'An Email sent to your account please verify',
-    context: reqData.context,
-    continuePipeline: false
-  });
+    return callback(null, { code: 201, data: 'An Email sent to your account please verify' });
+  } catch (err) { return callback(err) }
 }
 
 const server = new grpc.Server();
