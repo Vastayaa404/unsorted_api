@@ -23,16 +23,12 @@ function processRequest(client, requestData) { return new Promise((resolve, reje
 
 Fastify().addHook('onRequest', headersConfig).register(cors, corsConfig).register(cookie, { secret: "8jsn;Z,dkEU3HBSk-ksdklSMKa", hook: 'onRequest' }).setErrorHandler((err, req, res) => { res.status(err.statusCode ?? 500).send({ code: err.statusCode ?? 500, data: err.message }) })
 .route({ method: ['POST', 'GET'], url: '/*', handler: async (req, res) => {
-  console.log('Попадание в гейтвей')
-
-  const routeKey = req.raw.url;
-  const routeConfig = routeCache[routeKey] ?? JSON.parse(await redis.hget('route_registry', routeKey)); // TODO: упростить конфиг
-  console.log('route key: ', JSON.parse(await redis.hget('route_registry', routeKey)))
-  if (!routeConfig) return res.status(404).send({ code: 404, data: `Route ${routeKey} is not supported` });
-  routeCache[routeKey] = routeConfig;
+  const routeConfig = routeCache[req.raw.url] ?? JSON.parse(await redis.hget('route_registry', req.raw.url)); // TODO: упростить конфиг
+  console.log('route key: ', JSON.parse(await redis.hget('route_registry', req.raw.url)))
+  if (!routeConfig) return res.status(404).send({ code: 404, data: `Route ${req.raw.url} is not supported` });
+  routeCache[req.raw.url] = routeConfig;
   console.log('Попадание в маршрут')
 
-  // Формируем данные запроса. Тело запроса преобразуем в строку (ожидается JSON)
   const requestData = { body: JSON.stringify(req.body || {}), cookies: req.cookies || {} };
   const firstServiceConfig = routeConfig.middlewares[0];
   const client = getGrpcClient(firstServiceConfig);

@@ -1,4 +1,3 @@
-// Import all dependencies ======================================================================================================================================================================================================>
 // import nodemailer from 'nodemailer';
 // import ApiError from './api.error.mjs';
 // import { handleError } from './api.deborah.mjs';
@@ -12,13 +11,7 @@ import protoLoader from '@grpc/proto-loader';
 import nodemailer from 'nodemailer';
 
 const PROTO_PATH = '../gateway/pipeline.proto';
-const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
-  keepCase: true,
-  longs: String,
-  enums: String,
-  defaults: true,
-  oneofs: true
-});
+const packageDefinition = protoLoader.loadSync(PROTO_PATH, { keepCase: true, longs: String, enums: String, defaults: true, oneofs: true });
 const pipelineProto = grpc.loadPackageDefinition(packageDefinition).pipeline;
 const suClient = new pipelineProto.PipelineService('localhost:50053', grpc.credentials.createInsecure()); // next service
 
@@ -26,7 +19,7 @@ async function processData(call, callback) {
   try {
     const reqData = call.request;
     const { MAIL_HOST, MAIL_PORT, MAIL_USER, MAIL_PASSWORD, MAIL_DOMAIN } = process.env;
-    // if (!MAIL_HOST || !MAIL_PORT || !MAIL_USER || !MAIL_PASSWORD || !MAIL_DOMAIN) return callback(null, { code: 501, data: 'Mail service error' });
+    if (!MAIL_HOST || !MAIL_PORT || !MAIL_USER || !MAIL_PASSWORD || !MAIL_DOMAIN) return callback(null, { code: 501, data: 'Mail service error' });
 
     const transporter = nodemailer.createTransport({
       host: MAIL_HOST,
@@ -38,12 +31,12 @@ async function processData(call, callback) {
       },
     });
 
-    // await transporter.sendMail({
-    //   from: MAIL_DOMAIN,
-    //   to: body.email,
-    //   subject: "Verify Email",
-    //   text: `Click on the link below to verify your account: 'this is link :3'/${body.email}`,
-    // });
+    await transporter.sendMail({
+      from: MAIL_DOMAIN,
+      to: body.email,
+      subject: "Verify Email",
+      text: `Click on the link below to verify your account: 'this is link :3'/${body.email}`,
+    });
 
     const response = await new Promise((resolve, reject) => {
       suClient.Process(reqData, (err, res) => {

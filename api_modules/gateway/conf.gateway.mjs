@@ -7,15 +7,13 @@ const items = {
   "/auth/signin": {
     method: "POST",
     middlewares: [
-      { "service": "signin-service", "namespace": "signin", "action": "signIn", "attr": "si", "params": "body" }
+      { service: "signin-service", "namespace": "signin", "action": "signIn", "attr": "si", "params": "body" }
     ]
   },
   "/auth/signup": {
     method: "POST",
     middlewares: [
-      { "service": "check-data-is-valid-service", "namespace": "check-data-is-valid", "action": "checkDataIsValid", "attr": "cdv", "params": "body", host: "localhost", port: 50051 },
-      { "service": "send-activate-link-service", "namespace": "send-activate-link", "action": "sendActivateLink", "attr": "sal", "params": "body", host: "localhost", port: 50052 },
-      { "service": "signup-service", "namespace": "signup", "action": "signUp", "attr": "su", "params": "body", "host": "localhost", "port": 50053 }
+      { service: "check-data-is-valid-service", host: "localhost", port: 50051 },
     ]
   },
   "/auth/refresh": {
@@ -26,9 +24,9 @@ const items = {
     ]
   },
   "/services/weather": {
-    "method": "POST",
-    "middlewares": [
-      { "service": "weather-service", "namespace": "weather", "action": "getWeather", "attr": "ws", "params": "body" }
+    method: "POST",
+    middlewares: [
+      { service: "weather-service", host: "localhost", port: 50054 }
     ]
   },
   "/services/info": {
